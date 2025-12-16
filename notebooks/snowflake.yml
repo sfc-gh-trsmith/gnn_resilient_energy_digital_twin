@@ -1,0 +1,16 @@
+definition_version: "2"
+entities:
+  gridguard_cascade_notebook:
+    type: notebook
+    identifier:
+      name: GRIDGUARD_CASCADE_NOTEBOOK
+    main_file: grid_cascade_analysis.ipynb
+    runtime_name: SYSTEM$GPU_RUNTIME
+    compute_pool: GRIDGUARD_COMPUTE_POOL
+    query_warehouse: GRIDGUARD_WH
+    external_access_integrations:
+      - GRIDGUARD_EXTERNAL_ACCESS
+    artifacts:
+      - grid_cascade_analysis.ipynb
+      - environment.yml
+

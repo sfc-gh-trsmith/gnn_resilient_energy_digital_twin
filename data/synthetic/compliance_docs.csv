@@ -1,0 +1,61 @@
+DOC_ID,REGULATION_CODE,TITLE,SECTION,CONTENT,EFFECTIVE_DATE,KEYWORDS,DOC_TYPE
+NERC_CIP_008_6_R1,NERC-CIP-008-6,Cyber Security Incident Response - Incident Response Plan,R1,"Each Responsible Entity shall document one or more Cyber Security Incident response plans that collectively include: 
+1.1 One or more processes to identify, classify, and respond to Cyber Security Incidents
+1.2 One or more processes to determine if an identified Cyber Security Incident is a Reportable Cyber Security Incident
+1.3 The roles and responsibilities of Cyber Security Incident response groups
+1.4 Incident handling procedures for each type of Cyber Security Incident
+1.5 The process for reporting Reportable Cyber Security Incidents to ES-ISAC and ICS-CERT",2019-07-01,"incident response, cyber security, reporting, ES-ISAC",REGULATION
+NERC_EOP_004_4_R1,NERC-EOP-004-4,Event Reporting - Event Reporting Requirements,R1,"Each Responsible Entity shall report events to the applicable organizations within the specified timeframes:
+- Physical threats: within 24 hours to the Electricity Sector Information Sharing and Analysis Center
+- Voltage collapse events exceeding 300MW: within 1 hour to the Regional Entity
+- Load shedding events exceeding 100MW: within 24 hours using DOE Form OE-417
+- Transmission line trips affecting system stability: within 1 hour
+For cascade failures affecting multiple substations, immediate notification to the Reliability Coordinator is required.",2022-01-01,"event reporting, voltage collapse, load shedding, cascade failure, OE-417",REGULATION
+NERC_EOP_004_4_FORM,NERC-EOP-004-4,DOE Form OE-417 - Electric Emergency Incident and Disturbance Report,Form,"Form OE-417 must be filed for the following events:
+- Fuel supply emergencies affecting reliability
+- Load shedding of 100 MW or more
+- Voltage reductions of 3 percent or more
+- Public appeals to reduce electricity use
+- Physical attacks on facilities
+- Cyber events affecting reliability
+- Major transmission line outages
+Filing deadlines: Initial report within 6 hours, final report within 30 days.
+Submit to: DOE Office of Electricity via the OE-417 online portal.",2022-01-01,"OE-417, emergency report, load shedding, voltage reduction",FORM
+NERC_TPL_001_5_R1,NERC-TPL-001-5,Transmission System Planning Performance - Steady State,R1,"Each Planning Coordinator and Transmission Planner shall maintain System models for steady-state analysis that include:
+1.1 Modeling data for generators, transmission lines, and loads
+1.2 System topology representing realistic operating conditions  
+1.3 Transfer limits between areas
+1.4 Reactive power capabilities
+For cascade failure risk assessment, models must simulate N-1-1 contingencies and identify potential cascade initiating nodes (weak points in the system topology). Historical cascade events should inform model validation.",2020-10-01,"planning, steady state, topology, cascade, N-1-1, weak points",REGULATION
+NERC_FAC_001_3_R1,NERC-FAC-001-3,Facility Interconnection Requirements - Connection Requirements,R1,"Each Transmission Owner shall document facility connection requirements that include:
+- Voltage regulation requirements
+- Protection system requirements
+- Metering requirements  
+- Communication requirements
+For substations identified as critical cascade points, additional redundancy requirements apply:
+- Dual protection systems
+- Backup power supply with minimum 8-hour capacity
+- Real-time monitoring and automatic alerts
+Permian Basin and other remote substations require enhanced isolation capability.",2018-04-01,"facility, connection, protection, redundancy, Permian Basin",REGULATION
+ERCOT_NODAL_4_4_1,ERCOT-NODAL-4.4.1,ERCOT Nodal Operating Guides - Voltage Support,4.4.1,"During emergency conditions, ERCOT may issue directives for voltage support:
+- All generators must maintain reactive power output within capability curves
+- Transmission Operators shall implement voltage reduction procedures per ERCOT protocols
+- Load shedding may be ordered if voltage drops below 0.92 per unit
+For winter storm conditions, additional protocols apply:
+- Natural gas generators must maintain fuel supply coordination
+- Wind generation forecasting accuracy requirements increase
+- Emergency demand response programs may be activated",2021-06-01,"ERCOT, voltage, winter storm, load shedding, demand response",PROCEDURE
+ERCOT_BLACKSTART_7_2,ERCOT-NODAL-7.2,ERCOT System Restoration - Black Start Procedures,7.2,"Following a cascading blackout, system restoration shall follow these steps:
+1. Assess extent of outage and identify black start resources
+2. Establish cranking paths from black start units
+3. Restore transmission backbone in priority order
+4. Coordinate load pickup with Transmission Operators
+5. Monitor frequency and voltage during restoration
+Critical path substations (identified through cascade analysis) receive priority for restoration. Permian Basin facilities are designated as Tier 1 restoration priority due to natural gas infrastructure dependencies.",2021-06-01,"black start, restoration, cascade, Permian Basin, priority",PROCEDURE
+WINTER_STORM_URI_REPORT,FERC-NERC-2021,February 2021 Cold Weather Outages - Final Report,Executive Summary,"The February 2021 winter storm (Uri) caused widespread outages across Texas and the central United States. Key findings:
+- 4.5 million customers lost power at peak
+- Generation outages totaled 52,277 MW
+- Natural gas supply interruptions cascaded to generators
+- Winterization failures were primary cause
+- Cascade failures initiated at substations with single points of failure
+Recommendations include: enhanced weatherization requirements, improved fuel supply coordination, identification of cascade-vulnerable nodes through graph-based analysis, and mandatory extreme weather planning scenarios.",2021-11-01,"winter storm Uri, cascade, weatherization, natural gas, Texas",GUIDANCE

@@ -1,0 +1,12 @@
+name: gridguard_notebook
+channels:
+  - https://repo.anaconda.com/pkgs/snowflake
+dependencies:
+  - python=3.11
+  - numpy
+  - pandas
+  - scikit-learn
+  - scipy
+  - networkx
+  - matplotlib
+  - tqdm

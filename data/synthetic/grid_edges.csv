@@ -1,0 +1,107 @@
+EDGE_ID,SRC_NODE,DST_NODE,EDGE_TYPE,CAPACITY_MW,LENGTH_MILES,VOLTAGE_KV,REDUNDANCY_LEVEL,COMMENT
+LINE_001,SUB_PER_01,SUB_PER_06,TRANSMISSION,340,44.5,138,3,Line from Permian Basin Transmission Hub #1 to Permian Basin Load Center #6
+LINE_002,SUB_PER_01,SUB_PER_02,TRANSMISSION,1026,45.5,138,3,Line from Permian Basin Transmission Hub #1 to Permian Basin Generator #2
+LINE_003,SUB_PER_02,SUB_PER_06,TRANSMISSION,1468,54.4,138,2,Line from Permian Basin Generator #2 to Permian Basin Load Center #6
+LINE_004,SUB_PER_02,SUB_PER_08,TIE_LINE,1395,23.5,345,2,Line from Permian Basin Generator #2 to Permian Basin Load Center #8
+LINE_005,SUB_PER_03,SUB_PERMIAN_07,DISTRIBUTION,688,35.3,345,2,Line from Permian Basin Substation #3 to Permian Basin Substation #7
+LINE_006,SUB_PER_03,SUB_PER_08,TRANSMISSION,814,32.1,500,2,Line from Permian Basin Substation #3 to Permian Basin Load Center #8
+LINE_007,SUB_PER_04,SUB_PER_01,TIE_LINE,1353,12.9,138,1,Line from Permian Basin Substation #4 to Permian Basin Transmission Hub #1
+LINE_008,SUB_PER_04,SUB_PER_05,TIE_LINE,636,25.6,345,1,Line from Permian Basin Substation #4 to Permian Basin Load Center #5
+LINE_009,SUB_PER_05,SUB_PER_01,DISTRIBUTION,523,38.5,500,3,Line from Permian Basin Load Center #5 to Permian Basin Transmission Hub #1
+LINE_010,SUB_PER_05,SUB_PER_02,TIE_LINE,819,28.7,138,3,Line from Permian Basin Load Center #5 to Permian Basin Generator #2
+LINE_011,SUB_PER_05,SUB_PER_03,TIE_LINE,813,21.1,138,1,Line from Permian Basin Load Center #5 to Permian Basin Substation #3
+LINE_012,SUB_PER_06,SUB_PER_08,TRANSMISSION,757,59.7,345,3,Line from Permian Basin Load Center #6 to Permian Basin Load Center #8
+LINE_013,SUB_PER_06,SUB_PER_05,TRANSMISSION,902,26.0,230,3,Line from Permian Basin Load Center #6 to Permian Basin Load Center #5
+LINE_014,SUB_PERMIAN_07,SUB_PER_08,DISTRIBUTION,304,23.7,138,3,Line from Permian Basin Substation #7 to Permian Basin Load Center #8
+LINE_015,SUB_PERMIAN_07,SUB_PER_05,DISTRIBUTION,766,27.7,138,1,Line from Permian Basin Substation #7 to Permian Basin Load Center #5
+LINE_016,SUB_PERMIAN_07,SUB_PER_04,DISTRIBUTION,467,35.3,345,1,Line from Permian Basin Substation #7 to Permian Basin Substation #4
+LINE_017,SUB_PER_08,SUB_PER_04,TRANSMISSION,354,28.2,230,3,Line from Permian Basin Load Center #8 to Permian Basin Substation #4
+LINE_018,SUB_PER_08,SUB_PER_05,TRANSMISSION,956,39.1,230,2,Line from Permian Basin Load Center #8 to Permian Basin Load Center #5
+LINE_019,SUB_PER_08,SUB_PER_01,TRANSMISSION,285,31.0,345,2,Line from Permian Basin Load Center #8 to Permian Basin Transmission Hub #1
+LINE_020,SUB_GUL_09,SUB_GUL_12,TIE_LINE,711,34.0,138,2,Line from Gulf Coast Transmission Hub #1 to Gulf Coast Substation #4
+LINE_021,SUB_GUL_09,SUB_GUL_11,TIE_LINE,1032,25.7,230,1,Line from Gulf Coast Transmission Hub #1 to Gulf Coast Substation #3
+LINE_022,SUB_GUL_10,SUB_GUL_11,TRANSMISSION,567,36.2,345,2,Line from Gulf Coast Generator #2 to Gulf Coast Substation #3
+LINE_023,SUB_GUL_10,SUB_GUL_13,TIE_LINE,708,19.8,345,1,Line from Gulf Coast Generator #2 to Gulf Coast Load Center #5
+LINE_024,SUB_GUL_11,SUB_GUL_13,TRANSMISSION,608,52.0,500,2,Line from Gulf Coast Substation #3 to Gulf Coast Load Center #5
+LINE_025,SUB_GUL_11,SUB_GUL_14,DISTRIBUTION,666,28.0,230,1,Line from Gulf Coast Substation #3 to Gulf Coast Load Center #6
+LINE_026,SUB_GUL_12,SUB_GUL_10,TRANSMISSION,771,19.2,345,3,Line from Gulf Coast Substation #4 to Gulf Coast Generator #2
+LINE_027,SUB_GUL_12,SUB_GUL_13,TIE_LINE,1018,25.5,345,1,Line from Gulf Coast Substation #4 to Gulf Coast Load Center #5
+LINE_028,SUB_GUL_12,SUB_GUL_14,TRANSMISSION,734,23.2,230,3,Line from Gulf Coast Substation #4 to Gulf Coast Load Center #6
+LINE_029,SUB_GUL_12,SUB_GUL_11,DISTRIBUTION,278,28.9,138,3,Line from Gulf Coast Substation #4 to Gulf Coast Substation #3
+LINE_030,SUB_GUL_13,SUB_GUL_14,TIE_LINE,1247,32.0,138,2,Line from Gulf Coast Load Center #5 to Gulf Coast Load Center #6
+LINE_031,SUB_GUL_14,SUB_GUL_10,TRANSMISSION,1264,12.2,230,2,Line from Gulf Coast Load Center #6 to Gulf Coast Generator #2
+LINE_032,SUB_GUL_14,SUB_GUL_09,DISTRIBUTION,343,13.6,345,3,Line from Gulf Coast Load Center #6 to Gulf Coast Transmission Hub #1
+LINE_033,SUB_PAN_15,SUB_PAN_16,DISTRIBUTION,1036,20.3,345,2,Line from Panhandle Transmission Hub #1 to Panhandle Generator #2
+LINE_034,SUB_PAN_15,SUB_PAN_18,TIE_LINE,805,51.6,230,1,Line from Panhandle Transmission Hub #1 to Panhandle Substation #4
+LINE_035,SUB_PAN_15,SUB_PAN_19,DISTRIBUTION,976,38.0,230,3,Line from Panhandle Transmission Hub #1 to Panhandle Load Center #5
+LINE_036,SUB_PAN_16,SUB_PAN_18,DISTRIBUTION,787,46.4,230,2,Line from Panhandle Generator #2 to Panhandle Substation #4
+LINE_037,SUB_PAN_16,SUB_PAN_19,TIE_LINE,1442,17.8,345,2,Line from Panhandle Generator #2 to Panhandle Load Center #5
+LINE_038,SUB_PAN_16,SUB_PAN_20,DISTRIBUTION,1105,45.9,230,3,Line from Panhandle Generator #2 to Panhandle Load Center #6
+LINE_039,SUB_PAN_17,SUB_PAN_16,TIE_LINE,1496,28.3,345,1,Line from Panhandle Substation #3 to Panhandle Generator #2
+LINE_040,SUB_PAN_17,SUB_PAN_15,TRANSMISSION,835,26.4,230,1,Line from Panhandle Substation #3 to Panhandle Transmission Hub #1
+LINE_041,SUB_PAN_17,SUB_PAN_20,TRANSMISSION,250,17.7,138,1,Line from Panhandle Substation #3 to Panhandle Load Center #6
+LINE_042,SUB_PAN_18,SUB_PAN_20,DISTRIBUTION,1489,25.7,230,3,Line from Panhandle Substation #4 to Panhandle Load Center #6
+LINE_043,SUB_PAN_19,SUB_PAN_18,TRANSMISSION,211,50.7,138,2,Line from Panhandle Load Center #5 to Panhandle Substation #4
+LINE_044,SUB_PAN_19,SUB_PAN_20,TRANSMISSION,560,58.1,500,1,Line from Panhandle Load Center #5 to Panhandle Load Center #6
+LINE_045,SUB_PAN_20,SUB_PAN_15,DISTRIBUTION,1287,40.0,345,2,Line from Panhandle Load Center #6 to Panhandle Transmission Hub #1
+LINE_046,SUB_NOR_21,SUB_NOR_26,TRANSMISSION,1172,26.4,500,2,Line from North Central Transmission Hub #1 to North Central Load Center #6
+LINE_047,SUB_NOR_21,SUB_NOR_25,TRANSMISSION,767,21.4,500,3,Line from North Central Transmission Hub #1 to North Central Load Center #5
+LINE_048,SUB_NOR_21,SUB_NOR_24,TRANSMISSION,762,18.3,500,1,Line from North Central Transmission Hub #1 to North Central Substation #4
+LINE_049,SUB_NOR_21,SUB_NOR_23,TIE_LINE,785,17.0,230,2,Line from North Central Transmission Hub #1 to North Central Substation #3
+LINE_050,SUB_NOR_22,SUB_NOR_24,TRANSMISSION,673,20.4,500,3,Line from North Central Generator #2 to North Central Substation #4
+LINE_051,SUB_NOR_22,SUB_NOR_21,TRANSMISSION,638,2.7,138,2,Line from North Central Generator #2 to North Central Transmission Hub #1
+LINE_052,SUB_NOR_22,SUB_NOR_25,DISTRIBUTION,877,18.7,500,2,Line from North Central Generator #2 to North Central Load Center #5
+LINE_053,SUB_NOR_23,SUB_NOR_22,DISTRIBUTION,1396,19.3,138,3,Line from North Central Substation #3 to North Central Generator #2
+LINE_054,SUB_NOR_23,SUB_NOR_25,DISTRIBUTION,1176,35.3,138,2,Line from North Central Substation #3 to North Central Load Center #5
+LINE_055,SUB_NOR_24,SUB_NOR_25,TIE_LINE,1318,35.5,230,2,Line from North Central Substation #4 to North Central Load Center #5
+LINE_056,SUB_NOR_24,SUB_NOR_26,TRANSMISSION,758,22.9,500,2,Line from North Central Substation #4 to North Central Load Center #6
+LINE_057,SUB_NOR_24,SUB_NOR_23,TRANSMISSION,996,2.4,345,3,Line from North Central Substation #4 to North Central Substation #3
+LINE_058,SUB_NOR_25,SUB_NOR_26,TIE_LINE,1293,27.4,138,2,Line from North Central Load Center #5 to North Central Load Center #6
+LINE_059,SUB_NOR_26,SUB_NOR_22,TRANSMISSION,1145,26.2,230,1,Line from North Central Load Center #6 to North Central Generator #2
+LINE_060,SUB_SOU_27,SUB_SOU_31,DISTRIBUTION,869,46.1,345,2,Line from South Central Transmission Hub #1 to South Central Load Center #5
+LINE_061,SUB_SOU_27,SUB_SOU_30,DISTRIBUTION,1063,42.2,345,1,Line from South Central Transmission Hub #1 to South Central Substation #4
+LINE_062,SUB_SOU_27,SUB_SOU_28,DISTRIBUTION,239,50.9,138,2,Line from South Central Transmission Hub #1 to South Central Generator #2
+LINE_063,SUB_SOU_28,SUB_SOU_32,TRANSMISSION,706,34.0,230,1,Line from South Central Generator #2 to South Central Load Center #6
+LINE_064,SUB_SOU_29,SUB_SOU_28,TIE_LINE,434,56.1,230,2,Line from South Central Substation #3 to South Central Generator #2
+LINE_065,SUB_SOU_29,SUB_SOU_32,TIE_LINE,724,35.7,345,1,Line from South Central Substation #3 to South Central Load Center #6
+LINE_066,SUB_SOU_29,SUB_SOU_27,TIE_LINE,1443,5.9,138,1,Line from South Central Substation #3 to South Central Transmission Hub #1
+LINE_067,SUB_SOU_29,SUB_SOU_31,DISTRIBUTION,421,51.0,138,2,Line from South Central Substation #3 to South Central Load Center #5
+LINE_068,SUB_SOU_30,SUB_SOU_31,TRANSMISSION,1412,20.9,230,1,Line from South Central Substation #4 to South Central Load Center #5
+LINE_069,SUB_SOU_30,SUB_SOU_32,TIE_LINE,817,10.0,138,3,Line from South Central Substation #4 to South Central Load Center #6
+LINE_070,SUB_SOU_30,SUB_SOU_29,TRANSMISSION,911,45.0,500,3,Line from South Central Substation #4 to South Central Substation #3
+LINE_071,SUB_SOU_31,SUB_SOU_32,DISTRIBUTION,1203,26.4,138,2,Line from South Central Load Center #5 to South Central Load Center #6
+LINE_072,SUB_EAS_33,SUB_EAS_38,TIE_LINE,1302,64.7,500,2,Line from East Texas Transmission Hub #1 to East Texas Load Center #6
+LINE_073,SUB_EAS_33,SUB_EAS_36,DISTRIBUTION,1413,38.8,345,2,Line from East Texas Transmission Hub #1 to East Texas Substation #4
+LINE_074,SUB_EAS_34,SUB_EAS_33,DISTRIBUTION,699,36.4,500,3,Line from East Texas Generator #2 to East Texas Transmission Hub #1
+LINE_075,SUB_EAS_34,SUB_EAS_36,TIE_LINE,976,17.5,345,1,Line from East Texas Generator #2 to East Texas Substation #4
+LINE_076,SUB_EAS_35,SUB_EAS_36,TRANSMISSION,926,32.4,345,2,Line from East Texas Substation #3 to East Texas Substation #4
+LINE_077,SUB_EAS_35,SUB_EAS_34,DISTRIBUTION,1420,17.0,345,3,Line from East Texas Substation #3 to East Texas Generator #2
+LINE_078,SUB_EAS_35,SUB_EAS_37,TRANSMISSION,1258,15.7,230,1,Line from East Texas Substation #3 to East Texas Load Center #5
+LINE_079,SUB_EAS_36,SUB_EAS_37,TIE_LINE,692,20.1,500,3,Line from East Texas Substation #4 to East Texas Load Center #5
+LINE_080,SUB_EAS_36,SUB_EAS_38,TIE_LINE,1205,30.5,500,1,Line from East Texas Substation #4 to East Texas Load Center #6
+LINE_081,SUB_EAS_37,SUB_EAS_34,DISTRIBUTION,698,13.7,345,3,Line from East Texas Load Center #5 to East Texas Generator #2
+LINE_082,SUB_EAS_38,SUB_EAS_35,DISTRIBUTION,1327,43.8,345,2,Line from East Texas Load Center #6 to East Texas Substation #3
+LINE_083,SUB_EAS_38,SUB_EAS_37,TIE_LINE,1129,42.1,345,2,Line from East Texas Load Center #6 to East Texas Load Center #5
+LINE_084,SUB_EAS_38,SUB_EAS_34,DISTRIBUTION,672,29.1,138,3,Line from East Texas Load Center #6 to East Texas Generator #2
+LINE_085,SUB_WES_39,SUB_WES_42,TIE_LINE,1297,9.9,230,1,Line from West Texas Transmission Hub #1 to West Texas Substation #4
+LINE_086,SUB_WES_39,SUB_WES_40,TRANSMISSION,1191,14.7,345,3,Line from West Texas Transmission Hub #1 to West Texas Generator #2
+LINE_087,SUB_WES_40,SUB_WES_44,TRANSMISSION,806,54.8,230,2,Line from West Texas Generator #2 to West Texas Load Center #6
+LINE_088,SUB_WES_40,SUB_WES_45,TRANSMISSION,819,80.9,138,3,Line from West Texas Generator #2 to West Texas Load Center #7
+LINE_089,SUB_WES_40,SUB_WES_42,TIE_LINE,459,22.7,345,1,Line from West Texas Generator #2 to West Texas Substation #4
+LINE_090,SUB_WES_41,SUB_WES_44,TIE_LINE,458,23.5,500,1,Line from West Texas Substation #3 to West Texas Load Center #6
+LINE_091,SUB_WES_41,SUB_WES_42,TRANSMISSION,1375,34.8,345,2,Line from West Texas Substation #3 to West Texas Substation #4
+LINE_092,SUB_WES_42,SUB_WES_43,TRANSMISSION,717,3.6,500,1,Line from West Texas Substation #4 to West Texas Load Center #5
+LINE_093,SUB_WES_43,SUB_WES_45,TRANSMISSION,1381,66.0,138,1,Line from West Texas Load Center #5 to West Texas Load Center #7
+LINE_094,SUB_WES_44,SUB_WES_43,TRANSMISSION,708,53.5,138,3,Line from West Texas Load Center #6 to West Texas Load Center #5
+LINE_095,SUB_WES_45,SUB_WES_44,TIE_LINE,979,40.1,500,2,Line from West Texas Load Center #7 to West Texas Load Center #6
+LINE_096,SUB_PERMIAN_07,SUB_GUL_11,TIE_LINE,1664,521.4,345,1,Inter-region tie line
+LINE_097,SUB_PER_04,SUB_EAS_35,TIE_LINE,1852,558.6,345,1,Inter-region tie line
+LINE_098,SUB_PER_03,SUB_WES_43,TIE_LINE,653,89.2,345,1,Inter-region tie line
+LINE_099,SUB_GUL_12,SUB_PAN_20,TIE_LINE,1716,596.1,500,1,Inter-region tie line
+LINE_100,SUB_GUL_10,SUB_NOR_23,TIE_LINE,1947,271.1,500,1,Inter-region tie line
+LINE_101,SUB_GUL_14,SUB_EAS_34,TIE_LINE,1041,130.5,345,1,Inter-region tie line
+LINE_102,SUB_GUL_13,SUB_WES_40,TIE_LINE,1826,597.5,345,1,Inter-region tie line
+LINE_103,SUB_PAN_16,SUB_EAS_35,TIE_LINE,1718,559.4,500,1,Inter-region tie line
+LINE_104,SUB_PAN_18,SUB_WES_44,TIE_LINE,1122,340.1,500,1,Inter-region tie line
+LINE_105,SUB_NOR_24,SUB_EAS_36,TIE_LINE,664,204.9,345,1,Inter-region tie line
+LINE_106,SUB_EAS_34,SUB_WES_44,TIE_LINE,1678,679.9,345,1,Inter-region tie line

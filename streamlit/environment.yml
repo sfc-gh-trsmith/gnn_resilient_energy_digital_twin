@@ -1,0 +1,9 @@
+name: gridguard_streamlit
+channels:
+  - snowflake
+dependencies:
+  - pandas
+  - plotly
+  - networkx
+  - pydeck
+

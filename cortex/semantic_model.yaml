@@ -1,0 +1,195 @@
+# GridGuard Semantic Model for Cortex Analyst
+# Enables natural language queries over simulation results
+
+name: GRIDGUARD_SIMULATION_ANALYSIS
+description: |
+  Semantic model for analyzing GridGuard energy grid simulation results.
+  Supports queries about cascade failures, load shedding, customer impact,
+  and repair costs across different scenarios.
+
+tables:
+  - name: SIMULATION_RESULTS
+    description: GNN model simulation results showing cascade failure analysis
+    base_table:
+      database: GRIDGUARD
+      schema: GRIDGUARD
+      table: SIMULATION_RESULTS
+    
+    dimensions:
+      - name: SCENARIO_NAME
+        description: Name of the simulation scenario (BASE_CASE, HIGH_LOAD, WINTER_STORM_2021)
+        expr: SCENARIO_NAME
+        data_type: VARCHAR
+        sample_values:
+          - BASE_CASE
+          - HIGH_LOAD
+          - WINTER_STORM_2021
+      
+      - name: NODE_ID
+        description: Unique identifier for the grid node (substation)
+        expr: NODE_ID
+        data_type: VARCHAR
+      
+      - name: IS_PATIENT_ZERO
+        description: Whether this node is the cascade origin point
+        expr: IS_PATIENT_ZERO
+        data_type: BOOLEAN
+      
+      - name: CASCADE_ORDER
+        description: Order in which this node failed in the cascade sequence
+        expr: CASCADE_ORDER
+        data_type: NUMBER
+      
+      - name: CASCADE_DEPTH
+        description: Number of hops from the cascade origin (Patient Zero)
+        expr: CASCADE_DEPTH
+        data_type: NUMBER
+    
+    time_dimensions:
+      - name: RUN_TIMESTAMP
+        description: When the simulation was executed
+        expr: RUN_TIMESTAMP
+        data_type: TIMESTAMP
+    
+    measures:
+      - name: TOTAL_LOAD_SHED_MW
+        description: Total megawatts of load that was shed during the cascade
+        expr: SUM(LOAD_SHED_MW)
+        data_type: NUMBER
+        default_aggregation: sum
+      
+      - name: TOTAL_CUSTOMERS_IMPACTED
+        description: Total number of customers affected by the outage
+        expr: SUM(CUSTOMERS_IMPACTED)
+        data_type: NUMBER
+        default_aggregation: sum
+      
+      - name: TOTAL_REPAIR_COST
+        description: Total repair cost in dollars for all affected nodes
+        expr: SUM(REPAIR_COST)
+        data_type: NUMBER
+        default_aggregation: sum
+      
+      - name: AVG_FAILURE_PROBABILITY
+        description: Average probability of failure across nodes
+        expr: AVG(FAILURE_PROBABILITY)
+        data_type: NUMBER
+        default_aggregation: avg
+      
+      - name: MAX_CASCADE_DEPTH
+        description: Maximum cascade propagation depth
+        expr: MAX(CASCADE_DEPTH)
+        data_type: NUMBER
+        default_aggregation: max
+      
+      - name: NODES_AFFECTED
+        description: Count of nodes affected in the cascade
+        expr: COUNT(DISTINCT NODE_ID)
+        data_type: NUMBER
+        default_aggregation: count_distinct
+      
+      - name: AVG_RISK_SCORE
+        description: Average risk score across nodes
+        expr: AVG(RISK_SCORE)
+        data_type: NUMBER
+        default_aggregation: avg
+
+  - name: GRID_NODES
+    description: Grid topology nodes - substations and power assets
+    base_table:
+      database: GRIDGUARD
+      schema: GRIDGUARD
+      table: GRID_NODES
+    
+    dimensions:
+      - name: NODE_TYPE
+        description: Type of grid asset (SUBSTATION, GENERATOR, LOAD_CENTER, TRANSMISSION_HUB)
+        expr: NODE_TYPE
+        data_type: VARCHAR
+        sample_values:
+          - SUBSTATION
+          - GENERATOR
+          - LOAD_CENTER
+          - TRANSMISSION_HUB
+      
+      - name: REGION
+        description: Geographic region of the node
+        expr: REGION
+        data_type: VARCHAR
+        sample_values:
+          - Permian Basin
+          - Gulf Coast
+          - North Central
+          - Panhandle
+      
+      - name: NODE_NAME
+        description: Human-readable name of the node
+        expr: NODE_NAME
+        data_type: VARCHAR
+    
+    measures:
+      - name: TOTAL_CAPACITY_MW
+        description: Total capacity in megawatts
+        expr: SUM(CAPACITY_MW)
+        data_type: NUMBER
+        default_aggregation: sum
+      
+      - name: AVG_CRITICALITY
+        description: Average criticality score of nodes
+        expr: AVG(CRITICALITY_SCORE)
+        data_type: NUMBER
+        default_aggregation: avg
+      
+      - name: NODE_COUNT
+        description: Count of nodes
+        expr: COUNT(*)
+        data_type: NUMBER
+        default_aggregation: count
+
+relationships:
+  - name: simulation_to_nodes
+    left_table: SIMULATION_RESULTS
+    right_table: GRID_NODES
+    join_type: left_outer
+    relationship_type: many_to_one
+    join_columns:
+      - left_column: NODE_ID
+        right_column: NODE_ID
+
+verified_queries:
+  - name: total_repair_cost_by_scenario
+    question: What is the total repair cost for each scenario?
+    sql: |
+      SELECT SCENARIO_NAME, SUM(REPAIR_COST) as TOTAL_REPAIR_COST
+      FROM GRIDGUARD.GRIDGUARD.SIMULATION_RESULTS
+      GROUP BY SCENARIO_NAME
+      ORDER BY TOTAL_REPAIR_COST DESC
+  
+  - name: failed_substations_winter_storm
+    question: What was the total repair cost for all substations that failed during the winter storm simulation?
+    sql: |
+      SELECT SUM(sr.REPAIR_COST) as TOTAL_REPAIR_COST
+      FROM GRIDGUARD.GRIDGUARD.SIMULATION_RESULTS sr
+      JOIN GRIDGUARD.GRIDGUARD.GRID_NODES gn ON sr.NODE_ID = gn.NODE_ID
+      WHERE sr.SCENARIO_NAME = 'WINTER_STORM_2021'
+        AND sr.CASCADE_ORDER IS NOT NULL
+  
+  - name: patient_zero_identification
+    question: Which node was identified as Patient Zero in the winter storm cascade?
+    sql: |
+      SELECT sr.NODE_ID, gn.NODE_NAME, gn.REGION, sr.FAILURE_PROBABILITY
+      FROM GRIDGUARD.GRIDGUARD.SIMULATION_RESULTS sr
+      JOIN GRIDGUARD.GRIDGUARD.GRID_NODES gn ON sr.NODE_ID = gn.NODE_ID
+      WHERE sr.SCENARIO_NAME = 'WINTER_STORM_2021'
+        AND sr.IS_PATIENT_ZERO = TRUE
+  
+  - name: customers_impacted_by_region
+    question: How many customers were impacted in each region during the winter storm?
+    sql: |
+      SELECT gn.REGION, SUM(sr.CUSTOMERS_IMPACTED) as TOTAL_CUSTOMERS
+      FROM GRIDGUARD.GRIDGUARD.SIMULATION_RESULTS sr
+      JOIN GRIDGUARD.GRIDGUARD.GRID_NODES gn ON sr.NODE_ID = gn.NODE_ID
+      WHERE sr.SCENARIO_NAME = 'WINTER_STORM_2021'
+      GROUP BY gn.REGION
+      ORDER BY TOTAL_CUSTOMERS DESC
+

@@ -1,0 +1,16 @@
+definition_version: "2"
+entities:
+  gridguard_app:
+    type: streamlit
+    identifier:
+      name: GRIDGUARD_APP
+    main_file: streamlit_app.py
+    query_warehouse: GRIDGUARD_WH
+    title: GridGuard - Energy Grid Resilience
+    pages_dir: pages
+    artifacts:
+      - streamlit_app.py
+      - pages/
+      - utils/
+      - environment.yml
+

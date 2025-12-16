@@ -1,0 +1,46 @@
+NODE_ID,NODE_NAME,NODE_TYPE,LAT,LON,REGION,CAPACITY_MW,VOLTAGE_KV,INSTALL_YEAR,CRITICALITY_SCORE,COMMENT
+SUB_PER_01,Permian Basin Transmission Hub #1,TRANSMISSION_HUB,31.4113,-102.1584,Permian Basin,385,69,2013,0.45,TRANSMISSION_HUB in Permian Basin region
+SUB_PER_02,Permian Basin Generator #2,GENERATOR,32.0407,-102.3546,Permian Basin,165,69,1975,0.65,GENERATOR in Permian Basin region
+SUB_PER_03,Permian Basin Substation #3,SUBSTATION,31.5186,-102.3946,Permian Basin,507,500,1996,0.32,SUBSTATION in Permian Basin region
+SUB_PER_04,Permian Basin Substation #4,SUBSTATION,31.5204,-102.3107,Permian Basin,113,138,2014,0.79,SUBSTATION in Permian Basin region
+SUB_PER_05,Permian Basin Load Center #5,LOAD_CENTER,31.7226,-102.6221,Permian Basin,1663,230,1976,0.43,LOAD_CENTER in Permian Basin region
+SUB_PER_06,Permian Basin Load Center #6,LOAD_CENTER,31.3927,-102.8033,Permian Basin,1336,230,1972,0.81,LOAD_CENTER in Permian Basin region
+SUB_PERMIAN_07,Permian Basin Substation #7,LOAD_CENTER,32.0297,-102.3638,Permian Basin,1988,345,1975,0.95,LOAD_CENTER in Permian Basin region
+SUB_PER_08,Permian Basin Load Center #8,LOAD_CENTER,31.852,-102.0706,Permian Basin,1864,230,2006,0.67,LOAD_CENTER in Permian Basin region
+SUB_GUL_09,Gulf Coast Transmission Hub #1,TRANSMISSION_HUB,29.7046,-95.4542,Gulf Coast,692,69,1984,0.44,TRANSMISSION_HUB in Gulf Coast region
+SUB_GUL_10,Gulf Coast Generator #2,GENERATOR,29.8665,-95.1199,Gulf Coast,1808,230,1980,0.57,GENERATOR in Gulf Coast region
+SUB_GUL_11,Gulf Coast Substation #3,SUBSTATION,29.3702,-95.2905,Gulf Coast,1499,69,2008,0.46,SUBSTATION in Gulf Coast region
+SUB_GUL_12,Gulf Coast Substation #4,SUBSTATION,29.635,-94.9659,Gulf Coast,1046,345,1987,0.45,SUBSTATION in Gulf Coast region
+SUB_GUL_13,Gulf Coast Load Center #5,LOAD_CENTER,29.9895,-94.86,Gulf Coast,1502,230,2019,0.63,LOAD_CENTER in Gulf Coast region
+SUB_GUL_14,Gulf Coast Load Center #6,LOAD_CENTER,29.776,-95.271,Gulf Coast,746,345,1987,0.32,LOAD_CENTER in Gulf Coast region
+SUB_PAN_15,Panhandle Transmission Hub #1,TRANSMISSION_HUB,34.911,-101.3571,Panhandle,744,138,2011,0.83,TRANSMISSION_HUB in Panhandle region
+SUB_PAN_16,Panhandle Generator #2,GENERATOR,35.1992,-101.4153,Panhandle,392,230,1978,0.69,GENERATOR in Panhandle region
+SUB_PAN_17,Panhandle Substation #3,SUBSTATION,34.9466,-101.7386,Panhandle,1297,345,2007,0.46,SUBSTATION in Panhandle region
+SUB_PAN_18,Panhandle Substation #4,SUBSTATION,35.0994,-102.0807,Panhandle,1143,345,1975,0.9,SUBSTATION in Panhandle region
+SUB_PAN_19,Panhandle Load Center #5,LOAD_CENTER,35.4558,-101.4389,Panhandle,427,345,2008,0.39,LOAD_CENTER in Panhandle region
+SUB_PAN_20,Panhandle Load Center #6,LOAD_CENTER,34.7635,-101.9184,Panhandle,1183,230,2005,0.9,LOAD_CENTER in Panhandle region
+SUB_NOR_21,North Central Transmission Hub #1,TRANSMISSION_HUB,32.9803,-97.3854,North Central,1637,230,2019,0.83,TRANSMISSION_HUB in North Central region
+SUB_NOR_22,North Central Generator #2,GENERATOR,32.941,-97.3884,North Central,1029,69,2016,0.56,GENERATOR in North Central region
+SUB_NOR_23,North Central Substation #3,SUBSTATION,33.1759,-97.2366,North Central,465,500,1976,0.6,SUBSTATION in North Central region
+SUB_NOR_24,North Central Substation #4,SUBSTATION,33.1705,-97.2016,North Central,1347,138,1979,0.68,SUBSTATION in North Central region
+SUB_NOR_25,North Central Load Center #5,LOAD_CENTER,32.6739,-97.3385,North Central,1989,500,1970,0.87,LOAD_CENTER in North Central region
+SUB_NOR_26,North Central Load Center #6,LOAD_CENTER,32.8989,-97.0114,North Central,843,230,1985,0.37,LOAD_CENTER in North Central region
+SUB_SOU_27,South Central Transmission Hub #1,TRANSMISSION_HUB,29.1409,-98.4326,South Central,1598,345,1974,0.35,TRANSMISSION_HUB in South Central region
+SUB_SOU_28,South Central Generator #2,GENERATOR,29.878,-98.4673,South Central,1451,345,2005,0.38,GENERATOR in South Central region
+SUB_SOU_29,South Central Substation #3,SUBSTATION,29.0651,-98.4723,South Central,533,500,2018,0.66,SUBSTATION in South Central region
+SUB_SOU_30,South Central Substation #4,SUBSTATION,29.6299,-98.7988,South Central,1475,230,1998,0.49,SUBSTATION in South Central region
+SUB_SOU_31,South Central Load Center #5,LOAD_CENTER,29.7996,-98.5485,South Central,231,230,1971,0.45,LOAD_CENTER in South Central region
+SUB_SOU_32,South Central Load Center #6,LOAD_CENTER,29.4883,-98.7699,South Central,245,69,1984,0.43,LOAD_CENTER in South Central region
+SUB_EAS_33,East Texas Transmission Hub #1,TRANSMISSION_HUB,31.9054,-94.1404,East Texas,587,230,2012,0.34,TRANSMISSION_HUB in East Texas region
+SUB_EAS_34,East Texas Generator #2,GENERATOR,31.4854,-94.4608,East Texas,1907,500,2006,0.73,GENERATOR in East Texas region
+SUB_EAS_35,East Texas Substation #3,SUBSTATION,31.4727,-94.2154,East Texas,489,69,1976,0.78,SUBSTATION in East Texas region
+SUB_EAS_36,East Texas Substation #4,SUBSTATION,31.659,-94.6457,East Texas,1869,69,2013,0.55,SUBSTATION in East Texas region
+SUB_EAS_37,East Texas Load Center #5,LOAD_CENTER,31.6535,-94.3538,East Texas,1591,230,1976,0.34,LOAD_CENTER in East Texas region
+SUB_EAS_38,East Texas Load Center #6,LOAD_CENTER,31.2487,-94.8098,East Texas,964,138,1987,0.57,LOAD_CENTER in East Texas region
+SUB_WES_39,West Texas Transmission Hub #1,TRANSMISSION_HUB,30.7498,-103.5767,West Texas,1864,500,1976,0.57,TRANSMISSION_HUB in West Texas region
+SUB_WES_40,West Texas Generator #2,GENERATOR,30.5506,-103.5007,West Texas,291,138,1980,0.8,GENERATOR in West Texas region
+SUB_WES_41,West Texas Substation #3,SUBSTATION,30.9064,-104.0186,West Texas,1948,69,1980,0.82,SUBSTATION in West Texas region
+SUB_WES_42,West Texas Substation #4,SUBSTATION,30.879,-103.5147,West Texas,1705,345,1988,0.46,SUBSTATION in West Texas region
+SUB_WES_43,West Texas Load Center #5,LOAD_CENTER,30.923,-103.5427,West Texas,1238,345,1979,0.9,LOAD_CENTER in West Texas region
+SUB_WES_44,West Texas Load Center #6,LOAD_CENTER,30.6899,-104.2823,West Texas,1606,500,1973,0.34,LOAD_CENTER in West Texas region
+SUB_WES_45,West Texas Load Center #7,LOAD_CENTER,31.248,-104.4428,West Texas,1129,500,1980,0.65,LOAD_CENTER in West Texas region
