@@ -11,7 +11,7 @@ from snowflake.snowpark.context import get_active_session
 import sys
 sys.path.insert(0, '.')
 from utils.data_loader import run_queries_parallel, get_cascade_analysis
-from utils.viz import create_network_graph, create_cascade_timeline, create_kpi_card
+from utils.viz import create_network_graph, create_kpi_card, create_cascade_flow_diagram
 
 st.set_page_config(
     page_title="Simulation Results | GridGuard",
@@ -295,21 +295,39 @@ else:
     
     st.markdown("---")
     
-    # Cascade Timeline
-    st.markdown("## Cascade Propagation Timeline")
+    # Cascade Flow Analysis
+    st.markdown("## Cascade Flow Analysis")
     
     if simulation_df is not None and len(simulation_df) > 0:
-        # Merge with node names
-        cascade_df = simulation_df.merge(
-            nodes_df[['NODE_ID', 'NODE_NAME', 'REGION']],
-            on='NODE_ID',
-            how='left'
+        # Check if we have cascade data
+        has_cascade_data = (
+            'CASCADE_ORDER' in simulation_df.columns and 
+            simulation_df['CASCADE_ORDER'].notna().any()
         )
         
-        fig = create_cascade_timeline(cascade_df)
-        st.plotly_chart(fig, use_container_width=True)
+        if has_cascade_data:
+            # Merge with node info for the flow diagram
+            cascade_df = simulation_df.merge(
+                nodes_df[['NODE_ID', 'NODE_NAME', 'NODE_TYPE', 'REGION']],
+                on='NODE_ID',
+                how='left'
+            )
+            
+            fig = create_cascade_flow_diagram(cascade_df)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            st.markdown("""
+            <div style="background: rgba(27, 42, 65, 0.4); padding: 12px; border-radius: 8px; margin-top: 8px;">
+                <div style="color: #94A3B8; font-size: 12px;">
+                    <b>Reading the diagram:</b> Shows how failures propagate from Patient Zero to different infrastructure types. 
+                    Flow width represents total load shed (MW) per asset type. Hover over nodes to see affected components.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.info("No cascade propagation data available for this scenario")
     else:
-        st.info("No cascade data available for this scenario")
+        st.info("No simulation data available")
     
     st.markdown("---")
     

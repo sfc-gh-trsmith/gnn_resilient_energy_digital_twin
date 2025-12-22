@@ -176,28 +176,28 @@ def get_investment_priorities(session, scenario_name: str = 'WINTER_STORM_2021')
             sr.RISK_SCORE,
             -- Estimated impact if node fails (calculate for ALL nodes, not just failed ones)
             -- Uses actual repair cost if node failed, otherwise estimates based on capacity
-            CASE 
+            CAST(CASE 
                 WHEN sr.REPAIR_COST > 0 THEN sr.REPAIR_COST
                 ELSE ROUND(n.CAPACITY_MW * 10000 * (0.5 + n.CRITICALITY_SCORE) * sr.FAILURE_PROBABILITY, 0)
-            END as IMPACT_IF_FAILS,
+            END AS FLOAT) as IMPACT_IF_FAILS,
             sr.LOAD_SHED_MW,
             sr.CUSTOMERS_IMPACTED,
             sr.CASCADE_ORDER,
             sr.IS_PATIENT_ZERO,
             -- Estimated reinforcement cost (simplified: based on capacity and criticality)
-            ROUND(n.CAPACITY_MW * 10000 * (1 + n.CRITICALITY_SCORE), 0) as EST_REINFORCEMENT_COST,
+            CAST(ROUND(n.CAPACITY_MW * 10000 * (1 + n.CRITICALITY_SCORE), 0) AS FLOAT) as EST_REINFORCEMENT_COST,
             -- Node degree (network centrality proxy)
             (SELECT COUNT(*) FROM GRID_EDGES e 
              WHERE e.SRC_NODE = n.NODE_ID OR e.DST_NODE = n.NODE_ID) as NODE_DEGREE,
             -- Priority score: high impact + high probability / cost
-            ROUND(
+            CAST(ROUND(
                 (CASE 
                     WHEN sr.REPAIR_COST > 0 THEN sr.REPAIR_COST
                     ELSE n.CAPACITY_MW * 10000 * (0.5 + n.CRITICALITY_SCORE) * sr.FAILURE_PROBABILITY
                 END * sr.FAILURE_PROBABILITY) / 
                 NULLIF(n.CAPACITY_MW * 10000 * (1 + n.CRITICALITY_SCORE), 0) * 1000, 
                 4
-            ) as PRIORITY_SCORE
+            ) AS FLOAT) as PRIORITY_SCORE
         FROM GRID_NODES n
         JOIN SIMULATION_RESULTS sr ON n.NODE_ID = sr.NODE_ID
         WHERE sr.SCENARIO_NAME = '{scenario_name}'

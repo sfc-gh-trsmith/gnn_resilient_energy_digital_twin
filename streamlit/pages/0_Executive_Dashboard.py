@@ -239,7 +239,37 @@ col1, col2 = st.columns([3, 1])
 
 with col1:
     if investment_priorities is not None and len(investment_priorities) > 0:
+        # --- DEBUG START ---
+        with st.expander("🕵️‍♀️ Investment Matrix Debug", expanded=True):
+            st.write(f"Total Rows: {len(investment_priorities)}")
+            st.write("Column Types:")
+            st.write(investment_priorities.dtypes.astype(str))
+            
+            # Check for critical columns
+            req_cols = ['EST_REINFORCEMENT_COST', 'IMPACT_IF_FAILS', 'REGION', 'NODE_DEGREE']
+            missing = [c for c in req_cols if c not in investment_priorities.columns]
+            if missing:
+                st.error(f"Missing columns: {missing}")
+            
+            # Show sample data
+            st.write("First 5 rows (Raw):")
+            st.dataframe(investment_priorities[req_cols + ['NODE_NAME']].head())
+            
+            # Check values
+            st.write("Stats:")
+            st.write(investment_priorities[['EST_REINFORCEMENT_COST', 'IMPACT_IF_FAILS', 'NODE_DEGREE']].describe())
+            
+            st.write("Region Counts:")
+            st.write(investment_priorities['REGION'].value_counts())
+        # --- DEBUG END ---
+
         fig = create_investment_matrix(investment_priorities)
+        
+        # --- FIGURE DEBUG ---
+        with st.expander("📊 Figure JSON Debug", expanded=False):
+            st.json(fig.to_dict())
+        # --------------------
+        
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.warning("No investment priority data available")

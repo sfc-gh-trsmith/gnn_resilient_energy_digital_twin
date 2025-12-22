@@ -57,8 +57,9 @@ Options:
   -c, --connection NAME    Snowflake CLI connection name (default: demo)
   -p, --prefix PREFIX      Environment prefix for resources (e.g., DEV, PROD)
   --skip-data              Skip data upload and loading
-  --only-sql               Deploy only SQL infrastructure
+  --only-sql               Deploy only SQL infrastructure (includes Cortex)
   --only-data              Deploy only data upload and loading
+  --only-cortex            Deploy only Cortex Search Service
   --only-notebook          Deploy only the notebook
   --only-streamlit         Deploy only the Streamlit app
   -h, --help               Show this help message
@@ -96,6 +97,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --only-data)
             ONLY_COMPONENT="data"
+            shift
+            ;;
+        --only-cortex)
+            ONLY_COMPONENT="cortex"
             shift
             ;;
         --only-notebook)
@@ -140,10 +145,13 @@ should_run_step() {
     fi
     case "$ONLY_COMPONENT" in
         sql)
-            [[ "$step_name" == "account_sql" || "$step_name" == "schema_sql" ]]
+            [[ "$step_name" == "account_sql" || "$step_name" == "schema_sql" || "$step_name" == "cortex_sql" ]]
             ;;
         data)
             [[ "$step_name" == "upload_data" || "$step_name" == "load_data" ]]
+            ;;
+        cortex)
+            [[ "$step_name" == "cortex_sql" ]]
             ;;
         notebook)
             [[ "$step_name" == "notebook" ]]
@@ -358,10 +366,44 @@ else
 fi
 
 ###############################################################################
-# Step 6: Deploy Notebook and Semantic Model
+# Step 6: Create Cortex Search Service
+###############################################################################
+if should_run_step "cortex_sql"; then
+    echo "Step 6: Creating Cortex Search Service..."
+    echo "------------------------------------------------"
+    
+    # Check if 03_cortex_setup.sql exists
+    if [ -f "sql/03_cortex_setup.sql" ]; then
+        # Substitute placeholders and run SQL
+        {
+            echo "USE ROLE ${ROLE};"
+            echo "USE DATABASE ${DATABASE};"
+            echo "USE SCHEMA ${SCHEMA};"
+            echo "USE WAREHOUSE ${WAREHOUSE};"
+            echo ""
+            # Replace {{WAREHOUSE}} placeholder with actual warehouse name
+            sed "s/{{WAREHOUSE}}/${WAREHOUSE}/g" sql/03_cortex_setup.sql
+        } | snow sql $SNOW_CONN -i
+        
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}[OK]${NC} Cortex Search Service created"
+        else
+            echo -e "${YELLOW}[WARN]${NC} Cortex Search Service creation may have issues (data may not be loaded yet)"
+        fi
+    else
+        echo -e "${YELLOW}[WARN]${NC} sql/03_cortex_setup.sql not found, skipping Cortex setup"
+    fi
+    echo ""
+else
+    echo "Step 6: Skipped (--only-$ONLY_COMPONENT)"
+    echo ""
+fi
+
+###############################################################################
+# Step 7: Deploy Notebook and Semantic Model
 ###############################################################################
 if should_run_step "notebook"; then
-    echo "Step 6: Deploying notebook and semantic model..."
+    echo "Step 7: Deploying notebook and semantic model..."
     echo "------------------------------------------------"
     
     # Upload semantic model for Cortex Analyst
@@ -417,15 +459,15 @@ if should_run_step "notebook"; then
     fi
     echo ""
 else
-    echo "Step 6: Skipped (--only-$ONLY_COMPONENT)"
+    echo "Step 7: Skipped (--only-$ONLY_COMPONENT)"
     echo ""
 fi
 
 ###############################################################################
-# Step 7: Deploy Streamlit App
+# Step 8: Deploy Streamlit App
 ###############################################################################
 if should_run_step "streamlit"; then
-    echo "Step 7: Deploying Streamlit app..."
+    echo "Step 8: Deploying Streamlit app..."
     echo "------------------------------------------------"
     
     # Check if streamlit directory exists
@@ -444,6 +486,28 @@ if should_run_step "streamlit"; then
         # Clear local bundle cache
         rm -rf streamlit/output/bundle 2>/dev/null || true
         
+        # Generate snowflake.yml with correct resource names
+        echo "Generating snowflake.yml with environment-specific values..."
+        cat > streamlit/snowflake.yml << SNOWFLAKE_YML
+definition_version: "2"
+entities:
+  gridguard_app:
+    type: streamlit
+    identifier:
+      name: ${STREAMLIT_APP}
+    main_file: streamlit_app.py
+    query_warehouse: ${WAREHOUSE}
+    title: GridGuard - Energy Grid Resilience
+    pages_dir: pages
+    artifacts:
+      - streamlit_app.py
+      - pages/
+      - utils/
+      - environment.yml
+
+SNOWFLAKE_YML
+        echo -e "${GREEN}[OK]${NC} Generated streamlit/snowflake.yml"
+        
         # Deploy from streamlit directory
         cd streamlit
         
@@ -460,7 +524,7 @@ if should_run_step "streamlit"; then
     fi
     echo ""
 else
-    echo "Step 7: Skipped (--only-$ONLY_COMPONENT)"
+    echo "Step 8: Skipped (--only-$ONLY_COMPONENT)"
     echo ""
 fi
 

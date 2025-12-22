@@ -8,9 +8,35 @@ import json
 from typing import Optional, Dict, Any, List
 import streamlit as st
 
-# Configuration
-SEMANTIC_MODEL_PATH = "@GRIDGUARD.GRIDGUARD.MODELS_STAGE/semantic_model.yaml"
-SEARCH_SERVICE_NAME = "GRIDGUARD.GRIDGUARD.COMPLIANCE_SEARCH_SERVICE"
+
+def get_semantic_model_path(session) -> str:
+    """
+    Get the semantic model path dynamically from session context.
+    
+    Args:
+        session: Snowflake session
+    
+    Returns:
+        Fully qualified path to semantic model
+    """
+    db = session.get_current_database()
+    schema = session.get_current_schema()
+    return f"@{db}.{schema}.MODELS_STAGE/semantic_model.yaml"
+
+
+def get_search_service_name(session) -> str:
+    """
+    Get the Cortex Search service name dynamically from session context.
+    
+    Args:
+        session: Snowflake session
+    
+    Returns:
+        Fully qualified search service name
+    """
+    db = session.get_current_database()
+    schema = session.get_current_schema()
+    return f"{db}.{schema}.COMPLIANCE_SEARCH_SERVICE"
 
 
 def query_cortex_analyst(
@@ -50,7 +76,7 @@ def query_cortex_analyst(
         # Build request body
         request_body = {
             "messages": messages,
-            "semantic_model_file": SEMANTIC_MODEL_PATH
+            "semantic_model_file": get_semantic_model_path(session)
         }
         
         # Escape for SQL
@@ -242,7 +268,7 @@ Always provide actionable insights for grid operators."""
 def query_cortex_search(
     session,
     query: str,
-    service_name: str = "COMPLIANCE_SEARCH_SERVICE",
+    service_name: str = None,
     top_k: int = 5
 ) -> List[Dict[str, Any]]:
     """
@@ -251,13 +277,17 @@ def query_cortex_search(
     Args:
         session: Snowflake session
         query: Natural language search query
-        service_name: Name of the Cortex Search service
+        service_name: Name of the Cortex Search service (auto-derived if None)
         top_k: Number of results to return
     
     Returns:
         List of matching documents
     """
     try:
+        # Use dynamic service name if not provided
+        if service_name is None:
+            service_name = get_search_service_name(session)
+        
         # Execute search query
         results = session.sql(f"""
             SELECT * FROM TABLE(

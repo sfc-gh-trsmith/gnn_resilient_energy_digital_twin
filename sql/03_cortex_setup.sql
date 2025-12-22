@@ -4,6 +4,9 @@
 -- Creates Cortex Search service, uploads Semantic Model, and configures
 -- Cortex AI capabilities for compliance assistance
 -- Run with project role after data is loaded
+--
+-- IMPORTANT: This script uses placeholders that deploy.sh substitutes:
+--   {{WAREHOUSE}} - Project warehouse name (e.g., GRIDGUARD_WH or DEV_GRIDGUARD_WH)
 -- ============================================================================
 
 -- ============================================================================
@@ -23,7 +26,7 @@
 CREATE OR REPLACE CORTEX SEARCH SERVICE COMPLIANCE_SEARCH_SERVICE
     ON CONTENT
     ATTRIBUTES REGULATION_CODE, TITLE, DOC_TYPE, KEYWORDS
-    WAREHOUSE = GRIDGUARD_WH
+    WAREHOUSE = {{WAREHOUSE}}
     TARGET_LAG = '1 hour'
     AS (
         SELECT 

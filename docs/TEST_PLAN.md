@@ -67,6 +67,30 @@ This document provides a comprehensive test plan for the GridGuard Energy Grid R
 | `deploy.sh` | Create infrastructure and load data | 3-10 minutes |
 | `run.sh` | Execute notebook, check status, get URLs | Varies |
 
+### Cursor AI Execution Requirements
+
+When running the test cycle through Cursor AI, all commands must run **outside the sandbox** because they require:
+- Network access to communicate with Snowflake
+- File system access to upload data to stages
+- Git state access for some operations
+
+**Required permissions for Cursor AI:**
+```
+required_permissions: ["all"]
+```
+
+This disables the sandbox entirely and allows full network and filesystem access needed for Snowflake CLI operations.
+
+**Example Cursor AI command execution:**
+```
+./clean.sh --force    # Requires: network (Snowflake API calls)
+./deploy.sh           # Requires: network + filesystem (stage uploads)
+./run.sh main         # Requires: network (notebook execution)
+./run.sh status       # Requires: network (Snowflake queries)
+```
+
+> **Note:** When asking Cursor AI to run a full test cycle, specify "run outside sandbox" or the commands may fail due to network restrictions.
+
 ---
 
 ## 2. Test Cycle Phases
@@ -649,6 +673,9 @@ snow sql -c demo -q "SHOW CORTEX SEARCH SERVICES IN SCHEMA GRIDGUARD.GRIDGUARD;"
 
 ## 5. Full Test Cycle Commands
 
+> **Cursor AI Users:** All commands in this section require running outside the sandbox.
+> Use `required_permissions: ["all"]` when executing through Cursor AI.
+
 ### One-Liner (Non-Interactive Full Cycle)
 ```bash
 ./clean.sh --force && ./deploy.sh && ./run.sh main && ./run.sh status
@@ -742,6 +769,8 @@ snow sql -c demo -q "SHOW CORTEX SEARCH SERVICES IN SCHEMA GRIDGUARD.GRIDGUARD;"
 ---
 
 ## 7. Test Automation Script
+
+> **Cursor AI Users:** When running `test_cycle.sh` through Cursor AI, use `required_permissions: ["all"]` to run outside the sandbox.
 
 Create `test_cycle.sh` in the project root for automated CI/CD testing:
 
@@ -1010,7 +1039,7 @@ chmod +x test_cycle.sh
 
 ---
 
-**Last Updated:** $(date +%Y-%m-%d)  
+**Last Updated:** 2025-12-21  
 **See Also:**
 - [DRD.md](../DRD.md) - Demo Requirements Document
 - [SNOWFLAKE_DEMO_FULL_TEST_CYCLE.md](../.cursor/SNOWFLAKE_DEMO_FULL_TEST_CYCLE.md) - Test cycle methodology

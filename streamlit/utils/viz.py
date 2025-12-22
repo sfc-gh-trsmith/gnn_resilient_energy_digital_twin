@@ -198,16 +198,24 @@ def create_network_graph(
     return fig
 
 
-def create_cascade_timeline(cascade_df: pd.DataFrame) -> go.Figure:
+def create_cascade_flow_diagram(
+    cascade_df: pd.DataFrame,
+    value_col: str = 'LOAD_SHED_MW'
+) -> go.Figure:
     """
-    Create a timeline visualization of cascade propagation.
+    Create a Sankey diagram showing cascade failure propagation by infrastructure type.
+    
+    Groups nodes by NODE_TYPE (Generator, Substation, etc.) for a clean, readable
+    visualization showing how failures propagate through different asset types.
     
     Args:
-        cascade_df: DataFrame with CASCADE_ORDER, NODE_ID, NODE_NAME, LOAD_SHED_MW
+        cascade_df: DataFrame with CASCADE_ORDER, NODE_NAME, NODE_TYPE, and impact metrics
+        value_col: Column to use for link values ('LOAD_SHED_MW', 'CUSTOMERS_IMPACTED', 'REPAIR_COST')
     
     Returns:
-        Plotly Figure object
+        Plotly Figure object with Sankey diagram
     """
+    # Handle empty or invalid data
     if cascade_df is None or len(cascade_df) == 0:
         fig = go.Figure()
         fig.add_annotation(
@@ -222,15 +230,15 @@ def create_cascade_timeline(cascade_df: pd.DataFrame) -> go.Figure:
         )
         return fig
     
-    # Filter to cascade nodes only
+    # Filter to nodes with valid CASCADE_ORDER
     cascade_nodes = cascade_df[cascade_df['CASCADE_ORDER'].notna()].copy()
     cascade_nodes = cascade_nodes.sort_values('CASCADE_ORDER')
     
-    if len(cascade_nodes) == 0:
+    if len(cascade_nodes) < 2:
         fig = go.Figure()
         fig.add_annotation(
             x=0.5, y=0.5,
-            text="No cascade failures in this scenario",
+            text="Insufficient cascade data (need at least 2 nodes)",
             showarrow=False,
             font=dict(size=14, color='white')
         )
@@ -240,79 +248,157 @@ def create_cascade_timeline(cascade_df: pd.DataFrame) -> go.Figure:
         )
         return fig
     
-    # Determine which metric to use for y-axis
-    # Prefer LOAD_SHED_MW, but fall back to REPAIR_COST or FAILURE_PROBABILITY if not available
-    y_col = 'LOAD_SHED_MW'
-    y_title = 'Load Shed (MW)'
-    y_format = '{y:.1f} MW'
+    # Ensure required columns exist
+    if value_col not in cascade_nodes.columns:
+        value_col = 'LOAD_SHED_MW'
+    cascade_nodes[value_col] = cascade_nodes[value_col].fillna(0)
     
-    # Check if LOAD_SHED_MW has valid data
-    if y_col not in cascade_nodes.columns or cascade_nodes[y_col].isna().all() or (cascade_nodes[y_col] == 0).all():
-        # Try REPAIR_COST
-        if 'REPAIR_COST' in cascade_nodes.columns and cascade_nodes['REPAIR_COST'].notna().any() and (cascade_nodes['REPAIR_COST'] != 0).any():
-            y_col = 'REPAIR_COST'
-            y_title = 'Repair Cost ($)'
-            y_format = '${y:,.0f}'
-            cascade_nodes[y_col] = cascade_nodes[y_col].fillna(0)
-        # Try CUSTOMERS_IMPACTED
-        elif 'CUSTOMERS_IMPACTED' in cascade_nodes.columns and cascade_nodes['CUSTOMERS_IMPACTED'].notna().any():
-            y_col = 'CUSTOMERS_IMPACTED'
-            y_title = 'Customers Impacted'
-            y_format = '{y:,.0f}'
-            cascade_nodes[y_col] = cascade_nodes[y_col].fillna(0)
-        # Fall back to FAILURE_PROBABILITY scaled
-        elif 'FAILURE_PROBABILITY' in cascade_nodes.columns:
-            y_col = 'FAILURE_PROBABILITY'
-            y_title = 'Failure Probability'
-            y_format = '{y:.2%}'
-            cascade_nodes[y_col] = cascade_nodes[y_col].fillna(0)
+    if 'NODE_TYPE' not in cascade_nodes.columns:
+        cascade_nodes['NODE_TYPE'] = 'Unknown'
+    
+    if 'CUSTOMERS_IMPACTED' not in cascade_nodes.columns:
+        cascade_nodes['CUSTOMERS_IMPACTED'] = 0
+    cascade_nodes['CUSTOMERS_IMPACTED'] = cascade_nodes['CUSTOMERS_IMPACTED'].fillna(0)
+    
+    # Identify Patient Zero
+    if 'IS_PATIENT_ZERO' in cascade_nodes.columns:
+        patient_zero_mask = cascade_nodes['IS_PATIENT_ZERO'] == True
     else:
-        cascade_nodes[y_col] = cascade_nodes[y_col].fillna(0)
+        # Assume first cascade order is patient zero
+        min_order = cascade_nodes['CASCADE_ORDER'].min()
+        patient_zero_mask = cascade_nodes['CASCADE_ORDER'] == min_order
     
-    # Create bar chart
-    colors = [COLORS['patient_zero'] if row['IS_PATIENT_ZERO'] else COLORS['failed'] 
-              for _, row in cascade_nodes.iterrows()]
+    patient_zero_df = cascade_nodes[patient_zero_mask]
+    other_nodes_df = cascade_nodes[~patient_zero_mask]
     
-    # Get node names, handling potential missing column
-    node_labels = cascade_nodes.get('NODE_NAME', cascade_nodes.get('NODE_ID', ['Unknown'] * len(cascade_nodes)))
-    if hasattr(node_labels, 'str'):
-        node_labels = node_labels.str[:20]
+    # Get Patient Zero info
+    if len(patient_zero_df) > 0:
+        pz = patient_zero_df.iloc[0]
+        pz_name = pz.get('NODE_NAME', pz.get('NODE_ID', 'Unknown'))[:25]
+        pz_type = pz.get('NODE_TYPE', 'Unknown')
+        pz_value = patient_zero_df[value_col].sum()
+        pz_customers = patient_zero_df['CUSTOMERS_IMPACTED'].sum()
+    else:
+        pz_name = 'Unknown'
+        pz_type = 'Unknown'
+        pz_value = 0
+        pz_customers = 0
     
-    fig = go.Figure(go.Bar(
-        x=cascade_nodes['CASCADE_ORDER'],
-        y=cascade_nodes[y_col],
-        marker_color=colors,
-        text=node_labels,
-        textposition='outside',
-        textfont=dict(size=9, color='white'),
-        hovertemplate=(
-            '<b>%{text}</b><br>'
-            f'Cascade Order: %{{x}}<br>'
-            f'{y_title}: {y_format}<br>'
-            '<extra></extra>'
+    # Group other nodes by NODE_TYPE
+    type_groups = other_nodes_df.groupby('NODE_TYPE').agg({
+        value_col: 'sum',
+        'CUSTOMERS_IMPACTED': 'sum',
+        'CASCADE_ORDER': 'mean',  # Average cascade order for sorting
+        'NODE_ID': 'count',  # Count of nodes
+        'NODE_NAME': lambda x: list(x)  # List of node names
+    }).reset_index()
+    
+    type_groups.columns = ['node_type', 'value', 'customers', 'avg_order', 'count', 'node_names']
+    
+    # Sort by average cascade order (which type fails first)
+    type_groups = type_groups.sort_values('avg_order')
+    
+    # Format type labels for display
+    type_display_names = {
+        'GENERATOR': 'Generators',
+        'SUBSTATION': 'Substations',
+        'TRANSMISSION_HUB': 'Trans. Hubs',
+        'LOAD_CENTER': 'Load Centers',
+        'Unknown': 'Other'
+    }
+    
+    # Build Sankey nodes
+    # Node 0: Patient Zero
+    # Nodes 1+: Each NODE_TYPE group
+    node_labels = []
+    node_colors = []
+    node_customdata = []
+    
+    # Patient Zero node
+    node_labels.append(f"Patient Zero<br>({pz_name})")
+    node_colors.append(COLORS['patient_zero'])
+    node_customdata.append(f"Type: {pz_type}<br>Load Shed: {pz_value:,.0f} MW<br>Customers: {int(pz_customers):,}")
+    
+    # Type group nodes
+    for _, row in type_groups.iterrows():
+        type_name = type_display_names.get(row['node_type'], row['node_type'])
+        count = int(row['count'])
+        node_labels.append(f"{type_name}<br>({count} node{'s' if count > 1 else ''})")
+        node_colors.append(COLORS['failed'])
+        
+        # Build hover info with node names
+        names_list = row['node_names'][:5]  # Show first 5
+        names_str = '<br>'.join([f"• {n[:30]}" for n in names_list])
+        if len(row['node_names']) > 5:
+            names_str += f"<br>...and {len(row['node_names']) - 5} more"
+        
+        node_customdata.append(
+            f"Load Shed: {row['value']:,.0f} MW<br>"
+            f"Customers: {int(row['customers']):,}<br>"
+            f"<br>Affected nodes:<br>{names_str}"
         )
-    ))
+    
+    # Build links from Patient Zero to each type
+    sources = []
+    targets = []
+    values = []
+    link_colors = []
+    
+    for i, (_, row) in enumerate(type_groups.iterrows()):
+        sources.append(0)  # From Patient Zero
+        targets.append(i + 1)  # To this type group
+        values.append(max(row['value'], 1))  # Minimum 1 for visibility
+        link_colors.append('rgba(139, 92, 246, 0.4)')  # Purple with transparency
+    
+    # Create the Sankey diagram
+    fig = go.Figure(data=[go.Sankey(
+        arrangement='snap',
+        node=dict(
+            pad=30,
+            thickness=40,
+            line=dict(color='rgba(255,255,255,0.3)', width=1),
+            label=node_labels,
+            color=node_colors,
+            customdata=node_customdata,
+            hovertemplate='<b>%{label}</b><br>%{customdata}<extra></extra>'
+        ),
+        link=dict(
+            source=sources,
+            target=targets,
+            value=values,
+            color=link_colors,
+            hovertemplate=(
+                '<b>Cascade Impact</b><br>'
+                'Load Shed: %{value:,.0f} MW<br>'
+                '<extra></extra>'
+            )
+        )
+    )])
+    
+    # Calculate totals for subtitle
+    total_nodes = len(cascade_nodes)
+    total_impact = cascade_nodes[value_col].sum()
+    total_customers = cascade_nodes['CUSTOMERS_IMPACTED'].sum()
+    num_types = len(type_groups) + 1  # +1 for patient zero type
     
     fig.update_layout(
         title=dict(
-            text='Cascade Failure Timeline',
-            font=dict(size=16, color='white')
+            text=(
+                f'Cascade Flow by Infrastructure Type<br>'
+                f'<sup style="color:#94A3B8">{total_nodes} nodes affected • '
+                f'{num_types} asset types • '
+                f'Total Load Shed: {total_impact:,.0f} MW • '
+                f'Customers: {int(total_customers):,}</sup>'
+            ),
+            font=dict(size=16, color='white'),
+            x=0.5,
+            xanchor='center'
         ),
-        xaxis=dict(
-            title='Cascade Order',
-            color='white',
-            gridcolor='rgba(255,255,255,0.1)',
-            dtick=1
-        ),
-        yaxis=dict(
-            title=y_title,
-            color='white',
-            gridcolor='rgba(255,255,255,0.1)'
-        ),
-        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12, color='white'),
         paper_bgcolor='rgba(0,0,0,0)',
-        margin=dict(l=60, r=20, t=50, b=60),
-        height=350
+        plot_bgcolor='rgba(0,0,0,0)',
+        height=400,
+        margin=dict(l=40, r=40, t=100, b=40)
     )
     
     return fig
@@ -643,36 +729,82 @@ def create_investment_matrix(
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
         return fig
     
-    # Calculate axis midpoints for quadrant lines
-    x_mid = priorities_df['EST_REINFORCEMENT_COST'].median()
-    y_mid = priorities_df['IMPACT_IF_FAILS'].median()
+    # Create a clean copy and handle missing/null values
+    df = priorities_df.copy()
     
+    # Ensure required columns exist and have valid values
+    if 'EST_REINFORCEMENT_COST' not in df.columns:
+        df['EST_REINFORCEMENT_COST'] = 10000000  # Default $10M
+    if 'IMPACT_IF_FAILS' not in df.columns:
+        df['IMPACT_IF_FAILS'] = 5000000  # Default $5M
+    if 'NODE_DEGREE' not in df.columns:
+        df['NODE_DEGREE'] = 3
+    if 'REGION' not in df.columns:
+        df['REGION'] = 'Unknown'
+    if 'NODE_NAME' not in df.columns:
+        df['NODE_NAME'] = df.get('NODE_ID', 'Node')
+    
+    # Fill NaN values and convert to proper types
+    try:
+        df['EST_REINFORCEMENT_COST'] = pd.to_numeric(df['EST_REINFORCEMENT_COST'], errors='coerce').fillna(10000000)
+        df['IMPACT_IF_FAILS'] = pd.to_numeric(df['IMPACT_IF_FAILS'], errors='coerce').fillna(5000000)
+        df['NODE_DEGREE'] = pd.to_numeric(df['NODE_DEGREE'], errors='coerce').fillna(3)
+        df['REGION'] = df['REGION'].fillna('Unknown').astype(str)
+        df['NODE_NAME'] = df['NODE_NAME'].fillna('Unknown').astype(str)
+    except Exception:
+        # Fallback if conversion fails
+        pass
+    
+    # Ensure we have positive values for the chart
+    df = df[df['EST_REINFORCEMENT_COST'] >= 0]
+    df = df[df['IMPACT_IF_FAILS'] >= 0]
+    
+    if len(df) == 0:
+        fig = go.Figure()
+        fig.add_annotation(x=0.5, y=0.5, text="No valid data points for matrix",
+                          showarrow=False, font=dict(size=14, color='white'))
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+        return fig
+    
+    # Calculate axis midpoints for quadrant lines
+    x_mid = float(df['EST_REINFORCEMENT_COST'].median())
+    y_mid = float(df['IMPACT_IF_FAILS'].median())
+    x_max = float(df['EST_REINFORCEMENT_COST'].max())
+    y_max = float(df['IMPACT_IF_FAILS'].max())
+    
+    # Calculate marker sizes (ensure minimum size for visibility)
+    df['marker_size'] = (df['NODE_DEGREE'] * 2 + 12).clip(lower=12, upper=35)
+    
+    # Create figure
     fig = go.Figure()
     
-    # Add traces by region for legend
-    for region in priorities_df['REGION'].unique():
-        region_data = priorities_df[priorities_df['REGION'] == region]
-        color = REGION_COLORS.get(region, '#888888')
+    # Get unique regions for coloring
+    regions = sorted(df['REGION'].unique())
+    
+    for region in regions:
+        region_df = df[df['REGION'] == region]
+        
+        # Get color with fallback
+        color = REGION_COLORS.get(region, REGION_COLORS.get(str(region).upper().replace(' ', '_'), '#3498db'))
         
         fig.add_trace(go.Scatter(
-            x=region_data['EST_REINFORCEMENT_COST'],
-            y=region_data['IMPACT_IF_FAILS'],
+            x=region_df['EST_REINFORCEMENT_COST'].tolist(),
+            y=region_df['IMPACT_IF_FAILS'].tolist(),
             mode='markers',
-            name=region.replace('_', ' ').title(),
+            name=region,
             marker=dict(
-                size=region_data['NODE_DEGREE'] * 3 + 10,
+                size=region_df['marker_size'].tolist(),
                 color=color,
-                opacity=0.7,
-                line=dict(width=2, color='white')
+                opacity=0.85,
+                line=dict(width=1, color='white'),
+                sizemode='diameter'
             ),
-            text=region_data['NODE_NAME'],
-            customdata=region_data[['FAILURE_PROBABILITY', 'RISK_SCORE', 'IS_PATIENT_ZERO']].values,
+            text=region_df['NODE_NAME'].tolist(),
             hovertemplate=(
-                '<b>%{text}</b><br>'
-                'Reinforce Cost: $%{x:,.0f}<br>'
-                'Impact if Fails: $%{y:,.0f}<br>'
-                'Failure Prob: %{customdata[0]:.1%}<br>'
-                'Risk Score: %{customdata[1]:.3f}<br>'
+                '<b>%{text}</b><br>' +
+                f'Region: {region}<br>' +
+                'Reinforcement Cost: $%{x:,.0f}<br>' +
+                'Impact if Fails: $%{y:,.0f}<br>' +
                 '<extra></extra>'
             )
         ))
@@ -703,13 +835,15 @@ def create_investment_matrix(
             title='Estimated Reinforcement Cost ($)',
             color='white',
             gridcolor='rgba(255,255,255,0.1)',
-            tickformat='$,.0f'
+            tickformat='$,.0f',
+            range=[0, x_max * 1.1]
         ),
         yaxis=dict(
             title='Impact if Node Fails ($)',
             color='white',
             gridcolor='rgba(255,255,255,0.1)',
-            tickformat='$,.0f'
+            tickformat='$,.0f',
+            range=[0, y_max * 1.1]
         ),
         legend=dict(
             orientation='h',
