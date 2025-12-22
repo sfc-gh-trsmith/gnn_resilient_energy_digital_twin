@@ -1,12 +1,12 @@
 definition_version: "2"
 entities:
-  gridguard_app:
+  gnn_resilient_energy_digital_twin_app:
     type: streamlit
     identifier:
-      name: GRIDGUARD_APP
+      name: GNN_RESILIENT_ENERGY_DIGITAL_TWIN_APP
     main_file: streamlit_app.py
-    query_warehouse: GRIDGUARD_WH
-    title: GridGuard - Energy Grid Resilience
+    query_warehouse: GNN_RESILIENT_ENERGY_DIGITAL_TWIN_WH
+    title: GNN_RESILIENT_ENERGY_DIGITAL_TWIN - Energy Grid Resilience
     pages_dir: pages
     artifacts:
       - streamlit_app.py

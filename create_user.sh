@@ -3,8 +3,9 @@
 ###############################################################################
 # create_user.sh - Create a Snowflake user with access to a demo project
 #
-# This script automatically infers project configuration from deploy.sh in the
-# current project directory. All inferred values can be overridden via CLI.
+# This script automatically infers project configuration from PROJECT_NAME.md
+# and deploy.sh in the current project directory. All inferred values can be
+# overridden via CLI.
 #
 # Usage:
 #   ./create_user.sh --user USERNAME [OPTIONS]
@@ -64,22 +65,26 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 ###############################################################################
-# Auto-detect project configuration from deploy.sh
+# Auto-detect project configuration from PROJECT_NAME.md and deploy.sh
 ###############################################################################
 
-# Defaults (will be overridden by deploy.sh if present)
+# Defaults (will be overridden by project config if present)
 DEFAULT_CONNECTION_NAME="demo"
 DEFAULT_PROJECT_PREFIX=""
 DEFAULT_ENV_PREFIX=""
 
-# Try to read project settings from deploy.sh
-if [ -f "$SCRIPT_DIR/deploy.sh" ]; then
-    # Extract PROJECT_PREFIX from deploy.sh
-    DETECTED_PROJECT_PREFIX=$(grep -E '^PROJECT_PREFIX=' "$SCRIPT_DIR/deploy.sh" 2>/dev/null | head -1 | sed 's/PROJECT_PREFIX=["'"'"']*\([^"'"'"']*\)["'"'"']*/\1/')
+# Read project prefix from PROJECT_NAME.md (same source as deploy.sh)
+PROJECT_NAME_FILE="$SCRIPT_DIR/.cursor/PROJECT_NAME.md"
+if [ -f "$PROJECT_NAME_FILE" ]; then
+    # Read first line, convert to uppercase, replace hyphens with underscores
+    DETECTED_PROJECT_PREFIX=$(head -1 "$PROJECT_NAME_FILE" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
     if [ -n "$DETECTED_PROJECT_PREFIX" ]; then
         DEFAULT_PROJECT_PREFIX="$DETECTED_PROJECT_PREFIX"
     fi
-    
+fi
+
+# Try to read connection settings from deploy.sh
+if [ -f "$SCRIPT_DIR/deploy.sh" ]; then
     # Extract default CONNECTION_NAME from deploy.sh
     DETECTED_CONNECTION=$(grep -E '^CONNECTION_NAME=' "$SCRIPT_DIR/deploy.sh" 2>/dev/null | head -1 | sed 's/CONNECTION_NAME=["'"'"']*\([^"'"'"']*\)["'"'"']*/\1/')
     if [ -n "$DETECTED_CONNECTION" ]; then
@@ -112,8 +117,9 @@ Usage: $0 --user USERNAME [OPTIONS]
 
 Create a Snowflake user with access to a demo project.
 
-This script auto-detects project configuration from deploy.sh in the current
-directory. Detected values can be overridden via command line options.
+This script auto-detects project configuration from PROJECT_NAME.md and
+deploy.sh in the current directory. Detected values can be overridden via
+command line options.
 
 Required:
   -u, --user NAME           Username to create
@@ -141,7 +147,7 @@ Other Options:
 EOF
 
     # Show what's auto-detected
-    echo "Auto-Detected Configuration (from deploy.sh):"
+    echo "Auto-Detected Configuration (from PROJECT_NAME.md):"
     if [ -n "$DEFAULT_PROJECT_PREFIX" ]; then
         echo "  Project Prefix:    $DEFAULT_PROJECT_PREFIX"
         echo "  Connection:        $DEFAULT_CONNECTION_NAME"
@@ -151,7 +157,7 @@ EOF
         echo "  Warehouse:         ${DEFAULT_PROJECT_PREFIX}_WH"
         echo "  Compute Pool:      ${DEFAULT_PROJECT_PREFIX}_COMPUTE_POOL"
     else
-        echo "  (No deploy.sh found - specify all parameters manually)"
+        echo "  (No PROJECT_NAME.md found - specify all parameters manually)"
     fi
     echo ""
 
@@ -259,9 +265,9 @@ fi
 
 # Compute the full prefix (may include environment prefix)
 if [ -z "$DEFAULT_PROJECT_PREFIX" ]; then
-    # No deploy.sh found - require explicit parameters
+    # No PROJECT_NAME.md found - require explicit parameters
     if [ -z "$SNOWFLAKE_DATABASE" ] || [ -z "$SNOWFLAKE_SCHEMA" ]; then
-        error_exit "No deploy.sh found. Please specify --database and --schema explicitly.\nUse --help for usage information"
+        error_exit "No PROJECT_NAME.md found. Please specify --database and --schema explicitly.\nUse --help for usage information"
     fi
     FULL_PREFIX="$SNOWFLAKE_DATABASE"
 else
@@ -313,10 +319,10 @@ if [ "$SHOW_CONFIG" = true ]; then
     echo "Inferred Project Configuration"
     echo "=================================================="
     echo ""
-    if [ -f "$SCRIPT_DIR/deploy.sh" ]; then
-        echo -e "${GREEN}[OK]${NC} deploy.sh found in project directory"
+    if [ -f "$PROJECT_NAME_FILE" ]; then
+        echo -e "${GREEN}[OK]${NC} PROJECT_NAME.md found in project directory"
     else
-        echo -e "${YELLOW}[WARN]${NC} No deploy.sh found - using defaults"
+        echo -e "${YELLOW}[WARN]${NC} No PROJECT_NAME.md found - using defaults"
     fi
     echo ""
     echo "Configuration that will be used:"

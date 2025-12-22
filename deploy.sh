@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-# deploy.sh - Deploy GridGuard to Snowflake
+# deploy.sh - Deploy project to Snowflake
 #
 # Creates all infrastructure and deploys applications:
 #   1. Check prerequisites
@@ -27,9 +27,6 @@ ENV_PREFIX=""
 ONLY_COMPONENT=""
 SKIP_DATA=false
 
-# Project settings
-PROJECT_PREFIX="GRIDGUARD"
-
 # Get script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
@@ -39,6 +36,15 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
+
+# Read project prefix from PROJECT_NAME.md and convert to uppercase
+PROJECT_NAME_FILE="$SCRIPT_DIR/.cursor/PROJECT_NAME.md"
+if [ -f "$PROJECT_NAME_FILE" ]; then
+    PROJECT_PREFIX=$(head -1 "$PROJECT_NAME_FILE" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+else
+    echo -e "${RED}[ERROR] PROJECT_NAME.md not found at $PROJECT_NAME_FILE${NC}" >&2
+    exit 1
+fi
 
 # Error handler
 error_exit() {
@@ -51,7 +57,7 @@ usage() {
     cat << EOF
 Usage: $0 [OPTIONS]
 
-Deploy GridGuard energy grid resilience demo to Snowflake.
+Deploy energy grid resilience demo to Snowflake.
 
 Options:
   -c, --connection NAME    Snowflake CLI connection name (default: demo)
@@ -167,7 +173,7 @@ should_run_step() {
 
 # Display banner
 echo "=================================================="
-echo "GridGuard - Deployment"
+echo "${PROJECT_PREFIX} - Deployment"
 echo "=================================================="
 echo ""
 echo "Configuration:"
@@ -449,7 +455,7 @@ if should_run_step "notebook"; then
                 QUERY_WAREHOUSE = '${WAREHOUSE}'
                 EXTERNAL_ACCESS_INTEGRATIONS = (${EXTERNAL_ACCESS})
                 IDLE_AUTO_SHUTDOWN_TIME_SECONDS = 600
-                COMMENT = 'GridGuard GNN cascade analysis notebook';
+                COMMENT = '${PROJECT_PREFIX} GNN cascade analysis notebook';
             
             -- Commit live version for CLI execution
             ALTER NOTEBOOK ${NOTEBOOK_NAME} ADD LIVE VERSION FROM LAST;
@@ -488,16 +494,17 @@ if should_run_step "streamlit"; then
         
         # Generate snowflake.yml with correct resource names
         echo "Generating snowflake.yml with environment-specific values..."
+        PROJECT_PREFIX_LOWER=$(echo "$PROJECT_PREFIX" | tr '[:upper:]' '[:lower:]')
         cat > streamlit/snowflake.yml << SNOWFLAKE_YML
 definition_version: "2"
 entities:
-  gridguard_app:
+  ${PROJECT_PREFIX_LOWER}_app:
     type: streamlit
     identifier:
       name: ${STREAMLIT_APP}
     main_file: streamlit_app.py
     query_warehouse: ${WAREHOUSE}
-    title: GridGuard - Energy Grid Resilience
+    title: ${PROJECT_PREFIX} - Energy Grid Resilience
     pages_dir: pages
     artifacts:
       - streamlit_app.py

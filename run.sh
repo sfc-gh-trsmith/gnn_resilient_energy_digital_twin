@@ -23,12 +23,18 @@ CONNECTION_NAME="demo"
 ENV_PREFIX=""
 COMMAND=""
 
-# Project settings
-PROJECT_PREFIX="GRIDGUARD"
-
 # Get script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
+
+# Read project prefix from PROJECT_NAME.md and convert to uppercase
+PROJECT_NAME_FILE="$SCRIPT_DIR/.cursor/PROJECT_NAME.md"
+if [ -f "$PROJECT_NAME_FILE" ]; then
+    PROJECT_PREFIX=$(head -1 "$PROJECT_NAME_FILE" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+else
+    echo -e "${RED}[ERROR] PROJECT_NAME.md not found at $PROJECT_NAME_FILE${NC}" >&2
+    exit 1
+fi
 
 # Colors
 RED='\033[0;31m'
@@ -283,7 +289,7 @@ cmd_streamlit() {
     echo ""
     
     # Try to get URL
-    URL=$(snow streamlit get-url GRIDGUARD_APP \
+    URL=$(snow streamlit get-url ${STREAMLIT_APP} \
         $SNOW_CONN \
         --database $DATABASE \
         --schema $SCHEMA \

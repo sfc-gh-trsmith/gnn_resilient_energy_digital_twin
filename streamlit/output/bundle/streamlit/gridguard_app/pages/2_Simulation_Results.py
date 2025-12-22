@@ -1,1 +1,0 @@
-/Users/trsmith/Desktop/dev/mfg/gnn_resilient_energy_digital_twin/streamlit/pages/2_Simulation_Results.py

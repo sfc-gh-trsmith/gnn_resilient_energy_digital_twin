@@ -209,3 +209,5 @@ __marimo__/
 
 # Temporary scratch directory
 cursor_scratch/
+streamlit/output/
+streamlit/output/
