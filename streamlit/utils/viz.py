@@ -565,6 +565,296 @@ def create_animated_cascade_graph(
     return fig
 
 
+def create_cascade_animation_figure(
+    nodes_df: pd.DataFrame,
+    edges_df: pd.DataFrame,
+    simulation_df: pd.DataFrame,
+    title: str = "Cascade Propagation Animation"
+) -> go.Figure:
+    """
+    Create a network graph with Plotly native animation for cascade propagation.
+    
+    Uses Plotly's frames API to enable smooth client-side animation with
+    built-in play/pause controls and slider - no server round-trips needed.
+    
+    Args:
+        nodes_df: DataFrame with node information (NODE_ID, NODE_NAME, etc.)
+        edges_df: DataFrame with edge information (SRC_NODE, DST_NODE)
+        simulation_df: DataFrame with CASCADE_ORDER and IS_PATIENT_ZERO
+        title: Chart title
+    
+    Returns:
+        Plotly Figure with animation frames and controls
+    """
+    if simulation_df is None or len(simulation_df) == 0:
+        # Return empty figure with message
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No cascade data available",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16, color='white')
+        )
+        fig.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            height=500
+        )
+        return fig
+    
+    # Build NetworkX graph for layout
+    G = nx.Graph()
+    
+    for _, row in nodes_df.iterrows():
+        G.add_node(row['NODE_ID'], **row.to_dict())
+    
+    for _, row in edges_df.iterrows():
+        if row['SRC_NODE'] in G.nodes and row['DST_NODE'] in G.nodes:
+            G.add_edge(row['SRC_NODE'], row['DST_NODE'])
+    
+    # Calculate layout ONCE
+    pos = nx.spring_layout(G, seed=42, k=2, iterations=50)
+    
+    # Create simulation lookup
+    sim_lookup = {}
+    for _, row in simulation_df.iterrows():
+        sim_lookup[row['NODE_ID']] = {
+            'CASCADE_ORDER': row.get('CASCADE_ORDER'),
+            'IS_PATIENT_ZERO': row.get('IS_PATIENT_ZERO', False),
+            'NODE_NAME': row.get('NODE_NAME', str(row['NODE_ID'])),
+            'REGION': row.get('REGION', ''),
+            'LOAD_SHED_MW': row.get('LOAD_SHED_MW', 0)
+        }
+    
+    # Get max cascade order
+    max_step = int(simulation_df['CASCADE_ORDER'].max())
+    
+    # Pre-compute node positions (never change)
+    node_ids = list(G.nodes())
+    node_x = [pos[nid][0] for nid in node_ids]
+    node_y = [pos[nid][1] for nid in node_ids]
+    
+    # Pre-compute edge coordinates (base edges - never change)
+    edge_x, edge_y = [], []
+    for edge in G.edges():
+        x0, y0 = pos[edge[0]]
+        x1, y1 = pos[edge[1]]
+        edge_x.extend([x0, x1, None])
+        edge_y.extend([y0, y1, None])
+    
+    # Helper to compute node states for a given step
+    def get_node_states(step):
+        colors, sizes, hover_texts = [], [], []
+        for nid in node_ids:
+            sim = sim_lookup.get(nid, {})
+            cascade_order = sim.get('CASCADE_ORDER')
+            is_pz = sim.get('IS_PATIENT_ZERO', False)
+            node_name = sim.get('NODE_NAME', str(nid))
+            region = sim.get('REGION', '')
+            
+            if step == 0:
+                # Initial state - all active
+                color = COLORS['active']
+                size = 12
+                status = "Active"
+            elif is_pz and step >= 1:
+                color = COLORS['patient_zero']
+                size = 28
+                status = "Patient Zero"
+            elif cascade_order is not None and cascade_order <= step:
+                color = COLORS['failed']
+                size = 20
+                status = f"Failed (Step {cascade_order})"
+            elif cascade_order is not None and cascade_order == step + 1:
+                color = COLORS['warning']
+                size = 16
+                status = "At Risk"
+            else:
+                color = COLORS['active']
+                size = 12
+                status = "Active"
+            
+            colors.append(color)
+            sizes.append(size)
+            hover_texts.append(f"<b>{node_name}</b><br>Region: {region}<br>Status: {status}")
+        
+        return colors, sizes, hover_texts
+    
+    # Helper to compute cascade edges for a given step
+    def get_cascade_edges(step):
+        cascade_nodes = set()
+        for nid, sim in sim_lookup.items():
+            order = sim.get('CASCADE_ORDER')
+            if order is not None and order <= step:
+                cascade_nodes.add(nid)
+        
+        casc_x, casc_y = [], []
+        for edge in G.edges():
+            if edge[0] in cascade_nodes and edge[1] in cascade_nodes:
+                x0, y0 = pos[edge[0]]
+                x1, y1 = pos[edge[1]]
+                casc_x.extend([x0, x1, None])
+                casc_y.extend([y0, y1, None])
+        
+        return casc_x, casc_y
+    
+    # Create base figure with initial state (step 0)
+    init_colors, init_sizes, init_hovers = get_node_states(0)
+    
+    fig = go.Figure()
+    
+    # Trace 0: Base edges (always visible)
+    fig.add_trace(go.Scatter(
+        x=edge_x, y=edge_y,
+        mode='lines',
+        line=dict(width=1, color=COLORS['edge']),
+        hoverinfo='none',
+        name='Grid'
+    ))
+    
+    # Trace 1: Cascade path edges (initially empty)
+    fig.add_trace(go.Scatter(
+        x=[], y=[],
+        mode='lines',
+        line=dict(width=3, color=COLORS['edge_highlight']),
+        hoverinfo='none',
+        name='Cascade Path'
+    ))
+    
+    # Trace 2: Nodes
+    fig.add_trace(go.Scatter(
+        x=node_x, y=node_y,
+        mode='markers',
+        marker=dict(
+            size=init_sizes,
+            color=init_colors,
+            line=dict(width=2, color='white')
+        ),
+        text=init_hovers,
+        hoverinfo='text',
+        name='Nodes'
+    ))
+    
+    # Create animation frames
+    frames = []
+    slider_steps = []
+    
+    for step in range(max_step + 1):
+        colors, sizes, hovers = get_node_states(step)
+        casc_x, casc_y = get_cascade_edges(step)
+        
+        # Count failures at this step
+        failures = sum(1 for nid in node_ids 
+                      if sim_lookup.get(nid, {}).get('CASCADE_ORDER') is not None 
+                      and sim_lookup[nid]['CASCADE_ORDER'] <= step) if step > 0 else 0
+        
+        frame = go.Frame(
+            data=[
+                go.Scatter(x=edge_x, y=edge_y),  # Trace 0: base edges (unchanged)
+                go.Scatter(x=casc_x, y=casc_y),  # Trace 1: cascade edges
+                go.Scatter(
+                    marker=dict(size=sizes, color=colors, line=dict(width=2, color='white')),
+                    text=hovers
+                )  # Trace 2: nodes with updated colors/sizes
+            ],
+            name=str(step),
+            traces=[0, 1, 2]
+        )
+        frames.append(frame)
+        
+        # Slider step
+        step_label = "Initial" if step == 0 else f"Step {step}"
+        if step > 0:
+            step_label += f" ({failures} failed)"
+        
+        slider_steps.append({
+            "args": [[str(step)], {
+                "frame": {"duration": 500, "redraw": True},
+                "mode": "immediate",
+                "transition": {"duration": 300}
+            }],
+            "label": str(step),
+            "method": "animate"
+        })
+    
+    fig.frames = frames
+    
+    # Animation controls
+    fig.update_layout(
+        title=dict(
+            text=title,
+            font=dict(size=18, color='white'),
+            x=0.5
+        ),
+        showlegend=False,
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, fixedrange=True),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, fixedrange=True),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=20, r=20, t=60, b=100),
+        height=550,
+        
+        # Play/Pause buttons
+        updatemenus=[{
+            "type": "buttons",
+            "showactive": False,
+            "y": -0.05,
+            "x": 0.1,
+            "xanchor": "right",
+            "yanchor": "top",
+            "buttons": [
+                {
+                    "label": "▶ Play",
+                    "method": "animate",
+                    "args": [None, {
+                        "frame": {"duration": 800, "redraw": True},
+                        "fromcurrent": True,
+                        "transition": {"duration": 300, "easing": "cubic-in-out"}
+                    }]
+                },
+                {
+                    "label": "⏸ Pause",
+                    "method": "animate",
+                    "args": [[None], {
+                        "frame": {"duration": 0, "redraw": False},
+                        "mode": "immediate",
+                        "transition": {"duration": 0}
+                    }]
+                }
+            ],
+            "font": {"color": "white"},
+            "bgcolor": COLORS['snowflake_dark'],
+            "bordercolor": COLORS['snowflake_blue']
+        }],
+        
+        # Slider for step navigation
+        sliders=[{
+            "active": 0,
+            "yanchor": "top",
+            "xanchor": "left",
+            "currentvalue": {
+                "font": {"size": 14, "color": "white"},
+                "prefix": "Cascade Step: ",
+                "visible": True,
+                "xanchor": "center"
+            },
+            "transition": {"duration": 300, "easing": "cubic-in-out"},
+            "pad": {"b": 10, "t": 30},
+            "len": 0.8,
+            "x": 0.15,
+            "y": -0.02,
+            "steps": slider_steps,
+            "tickcolor": "white",
+            "font": {"color": "white"},
+            "bgcolor": COLORS['snowflake_dark'],
+            "bordercolor": COLORS['snowflake_blue'],
+            "activebgcolor": COLORS['snowflake_blue']
+        }]
+    )
+    
+    return fig
+
+
 def create_counterfactual_chart(
     actual_impact: Dict,
     prevented_impact: Dict

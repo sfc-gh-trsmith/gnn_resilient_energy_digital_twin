@@ -7,13 +7,12 @@ Includes animated cascade visualization, counter-factual analysis, and ROI calcu
 
 import streamlit as st
 import pandas as pd
-import time
 from snowflake.snowpark.context import get_active_session
 
 import sys
 sys.path.insert(0, '.')
 from utils.data_loader import run_queries_parallel
-from utils.viz import create_animated_cascade_graph, create_counterfactual_chart
+from utils.viz import create_cascade_animation_figure, create_counterfactual_chart
 
 st.set_page_config(
     page_title="Key Insights | GridGuard",
@@ -228,115 +227,51 @@ st.markdown("---")
 # Animated Cascade Visualization
 st.markdown("## 🎬 Cascade Propagation Animation")
 
-# Load nodes and edges for animation
-with st.spinner("Loading grid topology..."):
-    topo_queries = {
-        'nodes': "SELECT * FROM GRID_NODES",
-        'edges': "SELECT * FROM GRID_EDGES"
-    }
-    topo_data = run_queries_parallel(session, topo_queries)
-
-nodes_df = topo_data.get('nodes', pd.DataFrame())
-edges_df = topo_data.get('edges', pd.DataFrame())
-
 if cascade_path is not None and len(cascade_path) > 0:
-    max_cascade_order = int(cascade_path['CASCADE_ORDER'].max())
-    
-    col1, col2 = st.columns([3, 1])
-    
-    with col2:
-        st.markdown("### Animation Controls")
+    # Load grid topology for animation
+    with st.spinner("Loading cascade animation..."):
+        topo_queries = {
+            'nodes': "SELECT * FROM GRID_NODES",
+            'edges': "SELECT * FROM GRID_EDGES"
+        }
+        topo_data = run_queries_parallel(session, topo_queries)
         
-        # Initialize session state
-        if 'animation_step' not in st.session_state:
-            st.session_state.animation_step = 0
-        if 'auto_play' not in st.session_state:
-            st.session_state.auto_play = False
+        nodes_df = topo_data.get('nodes', pd.DataFrame())
+        edges_df = topo_data.get('edges', pd.DataFrame())
         
-        # Animation step slider - update session state when changed
-        animation_step = st.slider(
-            "Cascade Step",
-            min_value=0,
-            max_value=max_cascade_order,
-            value=st.session_state.animation_step,
-            key="cascade_slider"
-        )
-        
-        # Sync slider value back to session state
-        if animation_step != st.session_state.animation_step:
-            st.session_state.animation_step = animation_step
-            st.session_state.auto_play = False  # Stop auto-play if user manually changes slider
-        
-        # Control buttons in a row
-        btn_col1, btn_col2 = st.columns(2)
-        
-        with btn_col1:
-            # Step forward button
-            if st.button("⏭️ Step", use_container_width=True):
-                if st.session_state.animation_step < max_cascade_order:
-                    st.session_state.animation_step += 1
-                    st.experimental_rerun()
-        
-        with btn_col2:
-            # Reset button
-            if st.button("⏮️ Reset", use_container_width=True):
-                st.session_state.animation_step = 0
-                st.session_state.auto_play = False
-                st.experimental_rerun()
-        
-        # Auto-play toggle
-        if st.button(
-            "⏹️ Stop" if st.session_state.auto_play else "▶️ Auto-Play",
-            use_container_width=True,
-            type="primary" if st.session_state.auto_play else "secondary"
-        ):
-            st.session_state.auto_play = not st.session_state.auto_play
-            if st.session_state.auto_play and st.session_state.animation_step >= max_cascade_order:
-                st.session_state.animation_step = 0  # Reset if at end
-            st.experimental_rerun()
-        
-        # Auto-play logic - increment step if auto_play is on
-        if st.session_state.auto_play:
-            if st.session_state.animation_step < max_cascade_order:
-                time.sleep(1.0)
-                st.session_state.animation_step += 1
-                st.experimental_rerun()
-            else:
-                st.session_state.auto_play = False  # Stop at the end
-                st.experimental_rerun()
-        
-        # Current step info
-        current_step = st.session_state.animation_step
-        if current_step > 0:
-            current_failures = cascade_path[cascade_path['CASCADE_ORDER'] <= current_step]
-            st.markdown(f"""
-            <div style="background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: 8px; margin-top: 16px;">
-                <div style="color: #EF4444; font-size: 24px; font-weight: 700;">{len(current_failures)}</div>
-                <div style="color: #94A3B8; font-size: 12px;">Nodes Failed</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Progress indicator
-        progress = current_step / max_cascade_order if max_cascade_order > 0 else 0
-        st.progress(progress)
-        st.caption(f"Step {current_step} of {max_cascade_order}")
-    
-    with col1:
-        # Get cascade simulation data
-        cascade_sim = cascade_path.copy()
-        
-        # Create animated graph
-        fig = create_animated_cascade_graph(
+        # Create animation figure with Plotly native frames
+        fig = create_cascade_animation_figure(
             nodes_df=nodes_df,
             edges_df=edges_df,
-            simulation_df=cascade_sim,
-            current_step=st.session_state.animation_step if st.session_state.animation_step > 0 else None,
-            title=f"Winter Storm 2021 - Cascade Propagation (Step {st.session_state.animation_step})"
+            simulation_df=cascade_path,
+            title="Winter Storm 2021 - Cascade Propagation"
         )
-        st.plotly_chart(fig, use_container_width=True)
+    
+    # Display the animated chart
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Summary stats below
+    max_cascade_order = int(cascade_path['CASCADE_ORDER'].max())
+    total_failures = len(cascade_path)
+    
+    st.markdown(f"""
+    <div style="display: flex; gap: 24px; justify-content: center; margin-top: 8px;">
+        <div style="text-align: center; background: rgba(139, 92, 246, 0.1); padding: 12px 24px; border-radius: 8px;">
+            <div style="color: #8B5CF6; font-size: 24px; font-weight: 700;">{max_cascade_order}</div>
+            <div style="color: #94A3B8; font-size: 12px;">Cascade Steps</div>
+        </div>
+        <div style="text-align: center; background: rgba(239, 68, 68, 0.1); padding: 12px 24px; border-radius: 8px;">
+            <div style="color: #EF4444; font-size: 24px; font-weight: 700;">{total_failures}</div>
+            <div style="color: #94A3B8; font-size: 12px;">Total Nodes Failed</div>
+        </div>
+    </div>
+    <div style="text-align: center; color: #64748B; font-size: 12px; margin-top: 12px;">
+        Use the Play button or slider below the graph to animate the cascade propagation
+    </div>
+    """, unsafe_allow_html=True)
 
 else:
-    st.info("No cascade data available for animation")
+    st.info("No cascade data available for animation. Run the simulation notebook first.")
 
 st.markdown("---")
 
